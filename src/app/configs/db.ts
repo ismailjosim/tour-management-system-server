@@ -1,10 +1,12 @@
+/* eslint-disable no-console */
 import mongoose from 'mongoose'
-import config from './index'
+
 import 'colors'
+import { environmentVariables } from './env'
 
 const connectDB = async () => {
 	try {
-		await mongoose.connect(config.database_url as string)
+		await mongoose.connect(environmentVariables.DATABASE_URL)
 		console.log('Traveler Database Connected successfully'.bgBlue.bold)
 	} catch (error) {
 		console.log(`Failed to connect to database: ${error}`.bgRed.bold)
