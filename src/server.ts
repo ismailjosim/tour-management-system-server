@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import app from './app'
 import configs from './app/configs'
 import connectDB from './app/configs/db'
