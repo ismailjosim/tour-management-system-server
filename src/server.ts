@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import app from './app'
-import configs from './app/configs/env'
 import connectDB from './app/configs/db'
 import { Server } from 'http'
+import { environmentVariables } from './app/configs/env'
 
 let server: Server
 
@@ -37,8 +37,10 @@ const cleanExit = (signal: string) => {
 async function startServer() {
 	try {
 		await connectDB()
-		server = app.listen(configs.port, () => {
-			console.log(`🚀 Traveler Server is running on port ${configs.port}`)
+		server = app.listen(environmentVariables.PORT, () => {
+			console.log(
+				`🚀 Traveler Server is running on port ${environmentVariables.PORT}`,
+			)
 		})
 	} catch (error) {
 		gracefulShutdown('❌ Failed to connect to database or start server', error)
