@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import app from './app'
-import configs from './app/configs'
+import configs from './app/configs/env'
 import connectDB from './app/configs/db'
 import { Server } from 'http'
 

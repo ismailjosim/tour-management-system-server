@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import mongoose from 'mongoose'
-import config from './index'
+import config from './env'
 import 'colors'
 
 const connectDB = async () => {
