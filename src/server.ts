@@ -39,7 +39,8 @@ async function startServer() {
 		await connectDB()
 		server = app.listen(environmentVariables.PORT, () => {
 			console.log(
-				`🚀 Traveler Server is running on port ${environmentVariables.PORT}`,
+				`🚀 Traveler Server running on port: ${environmentVariables.PORT}`
+					.bgMagenta.bold,
 			)
 		})
 	} catch (error) {
