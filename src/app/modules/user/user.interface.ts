@@ -31,10 +31,10 @@ export interface IUser {
 	phone?: string
 	picture?: string
 	address?: string
-	isDeleted?: string
-	isActive?: IsActive
-	isVerified?: string
 	role: Role
+	isDeleted?: boolean
+	isActive?: IsActive
+	isVerified?: boolean
 	auths: IAuthProvider[]
 	booking?: Types.ObjectId[]
 	guides?: Types.ObjectId[]
