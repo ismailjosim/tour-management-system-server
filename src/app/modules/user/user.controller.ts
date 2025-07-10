@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express'
-import { UserModel } from './user.model'
 import httpStatus from 'http-status-codes'
+import { UserServices } from './user.service'
 
 const crateUser = async (req: Request, res: Response) => {
 	try {
-		const { name, email } = req.body
-		const user = await UserModel.create({
-			name,
-			email,
-		})
+		const user = await UserServices.createUserIntoDB(req.body)
+
 		res.status(httpStatus.CREATED).json({
 			message: 'User created successfully',
 			user,
