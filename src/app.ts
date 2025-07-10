@@ -1,6 +1,7 @@
 import express, { Application, Response } from 'express'
 import cors from 'cors'
 import router from './app/routes'
+import { globalErrorHandler } from './app/middlewares/globalErrorHandler'
 
 const app: Application = express()
 
@@ -18,5 +19,7 @@ app.get('/', async (_, res: Response) => {
 		message: 'Welcome to Traveler: Your Next Tour Partner 🚀',
 	})
 })
+
+app.use(globalErrorHandler)
 
 export default app
