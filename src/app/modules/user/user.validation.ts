@@ -57,7 +57,7 @@ const createUserSchemaValidation = z.object({
 		.max(50, { message: 'Name is too long' }),
 
 	password: passwordSchema.optional(),
-
+	email: z.string().email({ message: 'Invalid email address' }),
 	phone: z
 		.string({ invalid_type_error: 'Phone must be a string' })
 		.regex(/^(?:\+8801|8801|01)[0-9]{9}$/, {
@@ -78,8 +78,6 @@ const updateUserSchemaValidation = z.object({
 		.min(2, { message: 'Name must be minimum 2 characters' })
 		.max(50, { message: 'Name is too long' })
 		.optional(),
-
-	email: z.string().email({ message: 'Invalid email address' }).optional(),
 
 	password: passwordSchema.optional(),
 
