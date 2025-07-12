@@ -56,10 +56,6 @@ const createUserSchemaValidation = z.object({
 		})
 		.max(50, { message: 'Name is too long' }),
 
-	email: z
-		.string({ invalid_type_error: 'Email must be a string' })
-		.email({ message: 'Invalid email address' }),
-
 	password: passwordSchema.optional(),
 
 	phone: z
