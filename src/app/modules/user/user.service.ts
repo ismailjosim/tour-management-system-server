@@ -23,7 +23,12 @@ const getAllUsersFromDB = async () => {
 	}
 }
 
+const createSingleUserFromDB = async () => {
+	return null
+}
+
 export const UserServices = {
 	createUserIntoDB,
 	getAllUsersFromDB,
+	createSingleUserFromDB,
 }
