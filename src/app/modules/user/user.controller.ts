@@ -5,19 +5,6 @@ import { UserServices } from './user.service'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 
-// const crateUser = async (req: Request, res: Response, next: NextFunction) => {
-// 	try {
-// 		const user = await UserServices.createUserIntoDB(req.body)
-
-// 		res.status(httpStatus.CREATED).json({
-// 			message: 'User created successfully',
-// 			user,
-// 		})
-// 	} catch (err: any) {
-// 		next(err)
-// 	}
-// }
-
 const crateUser = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await UserServices.createUserIntoDB(req.body)
