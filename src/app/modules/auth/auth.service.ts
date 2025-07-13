@@ -3,7 +3,8 @@ import { IUser } from '../user/user.interface'
 import { UserModel } from '../user/user.model'
 import AppError from '../../errorHelpers/AppError'
 import bcrypt from 'bcryptjs'
-import JWT from 'jsonwebtoken'
+import { generateToken } from '../../utils/jwt'
+import { environmentVariables } from '../../configs/env'
 const credentialsLogin = async (payload: Partial<IUser>) => {
 	const { email, password } = payload
 	const isExist = await UserModel.findOne({ email })
@@ -25,7 +26,12 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
 		role: isExist.role,
 	}
 
-	const accessToken = JWT.sign(tokenPayload, 'ITS SECRET', { expiresIn: '1d' })
+	// const accessToken = JWT.sign(tokenPayload, 'ITS SECRET', { expiresIn: '1d' })
+	const accessToken = generateToken(
+		tokenPayload,
+		environmentVariables.JWT_ACCESS_SECRET,
+		environmentVariables.JWT_ACCESS_EXPIRES,
+	)
 
 	return {
 		accessToken,

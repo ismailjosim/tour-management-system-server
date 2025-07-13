@@ -3,6 +3,7 @@ import app from './app'
 import connectDB from './app/configs/db'
 import { Server } from 'http'
 import { environmentVariables } from './app/configs/env'
+import seedSuperAdmin from './app/utils/seedSuperAdmin'
 
 let server: Server
 
@@ -47,7 +48,11 @@ async function startServer() {
 		gracefulShutdown('❌ Failed to connect to database or start server', error)
 	}
 }
-startServer()
+;(async () => {
+	await startServer()
+	// Automatically create a super Admin if not exist
+	await seedSuperAdmin()
+})()
 
 // Unhandled Promise Rejection
 process.on('unhandledRejection', (reason) => {
