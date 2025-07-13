@@ -17,5 +17,11 @@ router.get(
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
 	UserControllers.getAllUsers,
 )
+router.patch(
+	'/:id',
+	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	validateSchema(UserSchemaValidation.updateUserSchemaValidation),
+	UserControllers.updateUser,
+)
 
 export const UserRoutes = router
