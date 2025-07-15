@@ -10,7 +10,7 @@ import {
 	createUserToken,
 } from '../../utils/userTokens'
 import { JwtPayload } from 'jsonwebtoken'
-import { environmentVariables } from '../../configs/env'
+import passwordHashing from '../../utils/passwordHashing'
 
 const credentialsLogin = async (payload: Partial<IUser>) => {
 	const { email, password } = payload
@@ -65,10 +65,7 @@ const resetPasswordIntoDB = async (
 	if (!isOldPasswordMatch) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Old Password doesn't match")
 	}
-	user!.password = await bcrypt.hash(
-		newPassword,
-		Number(environmentVariables.BCRYPT_SALT_ROUND),
-	)
+	user!.password = await passwordHashing(newPassword)
 	user!.save()
 }
 
