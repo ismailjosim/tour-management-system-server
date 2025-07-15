@@ -22,6 +22,7 @@ const credentialsLogin = catchAsync(
 		})
 	},
 )
+
 const getNewAccessToken = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const refreshToken = req.cookies.refreshToken
@@ -55,7 +56,34 @@ const getNewAccessToken = catchAsync(
 	},
 )
 
+const logout = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		// ❌ Clear access token cookie
+		res.clearCookie('accessToken', {
+			httpOnly: true,
+			secure: false, // ✅ Set to true in production (HTTPS)
+			sameSite: 'lax',
+		})
+
+		// ❌ Clear refresh token cookie
+		res.clearCookie('refreshToken', {
+			httpOnly: true,
+			secure: false,
+			sameSite: 'lax',
+		})
+
+		// ✅ Send logout confirmation
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'User Logged Out Successfully',
+			data: null,
+		})
+	},
+)
+
 export const AuthControllers = {
 	credentialsLogin,
 	getNewAccessToken,
+	logout,
 }
