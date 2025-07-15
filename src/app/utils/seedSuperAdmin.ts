@@ -34,7 +34,7 @@ const seedSuperAdmin = async () => {
 		}
 
 		const superAdmin = await UserModel.create(payload)
-		console.log('Super Admin Created Successfully', superAdmin)
+		console.log('Super Admin Created Successfully', superAdmin.name)
 	} catch (error) {
 		console.log(error)
 	}

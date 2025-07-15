@@ -5,21 +5,14 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { AuthServices } from './auth.service'
 import AppError from '../../errorHelpers/AppError'
+import { setAuthCookie } from '../../utils/setCookie'
 
 const credentialsLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const loginInfo = await AuthServices.credentialsLogin(req.body)
 
-		// send accessToken in cookies
-		res.cookie('accessToken', loginInfo.accessToken, {
-			httpOnly: true,
-			secure: false,
-		})
-		// send refreshToken in cookies
-		res.cookie('refreshToken', loginInfo.refreshToken, {
-			httpOnly: true,
-			secure: false,
-		})
+		// * set token access and refresh
+		setAuthCookie(res, loginInfo)
 
 		sendResponse(res, {
 			success: true,
@@ -45,16 +38,19 @@ const getNewAccessToken = catchAsync(
 		const loginInfo = await AuthServices.getNewAccessToken(refreshToken)
 
 		// send accessToken in cookies
-		res.cookie('accessToken', loginInfo.accessToken, {
-			httpOnly: true,
-			secure: false,
-		})
+		// res.cookie('accessToken', loginInfo.accessToken, {
+		// 	httpOnly: true,
+		// 	secure: false,
+		// })
+		setAuthCookie(res, loginInfo)
 
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,
 			message: 'New Access Token Generate successfully',
-			data: loginInfo,
+			data: {
+				accessToken: loginInfo.accessToken,
+			},
 		})
 	},
 )
