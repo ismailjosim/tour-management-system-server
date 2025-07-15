@@ -76,10 +76,10 @@ const updateUserIntoDB = async (
 			)
 		}
 
-		if (payload.role === Role.SUPER_ADMIN || decodedToken.role === Role.ADMIN) {
+		if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
 			throw new AppError(
 				httpStatus.FORBIDDEN,
-				'You are not authorized to this action',
+				'You are not authorized to this action FROM SECOND IF',
 			)
 		}
 	}
