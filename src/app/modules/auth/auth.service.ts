@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import httpStatus from 'http-status-codes'
-import { IsActive, IUser } from '../user/user.interface'
+import { IUser } from '../user/user.interface'
 import { UserModel } from '../user/user.model'
 import AppError from '../../errorHelpers/AppError'
 import bcrypt from 'bcryptjs'
-// import { generateToken } from '../../utils/jwt'
-// import { environmentVariables } from '../../configs/env'
-import createUserToken from '../../utils/userTokens'
-import { generateToken, verifyToken } from '../../utils/jwt'
-import { environmentVariables } from '../../configs/env'
+
+import {
+	createNewAccessTokenWithRefreshToken,
+	createUserToken,
+} from '../../utils/userTokens'
 import { JwtPayload } from 'jsonwebtoken'
+import passwordHashing from '../../utils/passwordHashing'
 
 const credentialsLogin = async (payload: Partial<IUser>) => {
 	const { email, password } = payload
@@ -41,52 +43,34 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
 		user: userWithoutPassword,
 	}
 }
-const getNewAccessToken = async (ParamsRefreshToken: string) => {
-	const verifyRefreshToken = verifyToken(
-		ParamsRefreshToken,
-		environmentVariables.REFRESH_TOKEN_SECRET,
-	) as JwtPayload
-
-	// ✅ Check if user exists
-	const isUserExist = await UserModel.findOne({
-		email: verifyRefreshToken.email,
-	})
-	if (!isUserExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, "This user doesn't exist")
-	}
-	if (
-		isUserExist.isActive === IsActive.BLOCKED ||
-		isUserExist.isActive === IsActive.INACTIVE
-	) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			`User is ${isUserExist.isActive}`,
-		)
-	}
-	if (isUserExist.isDeleted) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'user is removed')
-	}
-
-	// 🧾 Payload for token
-	const tokenPayload = {
-		userId: isUserExist._id,
-		email: isUserExist.email,
-		role: isUserExist.role,
-	}
-
-	// 🔑 Generate access token
-	const accessToken = generateToken(
-		tokenPayload,
-		environmentVariables.JWT_ACCESS_SECRET,
-		environmentVariables.JWT_ACCESS_EXPIRES, // e.g., '15m'
+const getNewAccessToken = async (refreshToken: string) => {
+	const newAccessToken = await createNewAccessTokenWithRefreshToken(
+		refreshToken,
 	)
 
 	return {
-		accessToken,
+		accessToken: newAccessToken,
 	}
+}
+const resetPasswordIntoDB = async (
+	oldPassword: string,
+	newPassword: string,
+	decodedToken: JwtPayload,
+) => {
+	const user = await UserModel.findById(decodedToken.userId)
+	const isOldPasswordMatch = await bcrypt.compare(
+		oldPassword,
+		user!.password as string,
+	)
+	if (!isOldPasswordMatch) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Old Password doesn't match")
+	}
+	user!.password = await passwordHashing(newPassword)
+	user!.save()
 }
 
 export const AuthServices = {
 	credentialsLogin,
 	getNewAccessToken,
+	resetPasswordIntoDB,
 }

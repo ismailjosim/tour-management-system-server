@@ -5,21 +5,15 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { AuthServices } from './auth.service'
 import AppError from '../../errorHelpers/AppError'
+import { setAuthCookie } from '../../utils/setCookie'
+import { JwtPayload } from 'jsonwebtoken'
 
 const credentialsLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const loginInfo = await AuthServices.credentialsLogin(req.body)
 
-		// send accessToken in cookies
-		res.cookie('accessToken', loginInfo.accessToken, {
-			httpOnly: true,
-			secure: false,
-		})
-		// send refreshToken in cookies
-		res.cookie('refreshToken', loginInfo.refreshToken, {
-			httpOnly: true,
-			secure: false,
-		})
+		// * set token access and refresh
+		setAuthCookie(res, loginInfo)
 
 		sendResponse(res, {
 			success: true,
@@ -29,6 +23,7 @@ const credentialsLogin = catchAsync(
 		})
 	},
 )
+
 const getNewAccessToken = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const refreshToken = req.cookies.refreshToken
@@ -45,16 +40,66 @@ const getNewAccessToken = catchAsync(
 		const loginInfo = await AuthServices.getNewAccessToken(refreshToken)
 
 		// send accessToken in cookies
-		res.cookie('accessToken', loginInfo.accessToken, {
-			httpOnly: true,
-			secure: false,
-		})
+		// res.cookie('accessToken', loginInfo.accessToken, {
+		// 	httpOnly: true,
+		// 	secure: false,
+		// })
+		setAuthCookie(res, loginInfo)
 
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,
 			message: 'New Access Token Generate successfully',
-			data: loginInfo,
+			data: {
+				accessToken: loginInfo.accessToken,
+			},
+		})
+	},
+)
+
+const logout = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		// ❌ Clear access token cookie
+		res.clearCookie('accessToken', {
+			httpOnly: true,
+			secure: false, // ✅ Set to true in production (HTTPS)
+			sameSite: 'lax',
+		})
+
+		// ❌ Clear refresh token cookie
+		res.clearCookie('refreshToken', {
+			httpOnly: true,
+			secure: false,
+			sameSite: 'lax',
+		})
+
+		// ✅ Send logout confirmation
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'User Logged Out Successfully',
+			data: null,
+		})
+	},
+)
+
+const resetPassword = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const newPassword = req.body.newPassword
+		const oldPassword = req.body.oldPassword
+		const decodedToken = req.user
+
+		await AuthServices.resetPasswordIntoDB(
+			oldPassword,
+			newPassword,
+			decodedToken as JwtPayload,
+		)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Password reset Successfully',
+			data: null,
 		})
 	},
 )
@@ -62,4 +107,6 @@ const getNewAccessToken = catchAsync(
 export const AuthControllers = {
 	credentialsLogin,
 	getNewAccessToken,
+	logout,
+	resetPassword,
 }
