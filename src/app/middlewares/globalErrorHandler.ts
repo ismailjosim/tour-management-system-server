@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import { environmentVariables } from '../configs/env'
 import AppError from '../errorHelpers/AppError'
 import { ZodError } from 'zod'
+import { TErrorSources } from '../interfaces/error.types'
 
 export const globalErrorHandler = (
 	err: any,
@@ -12,6 +13,11 @@ export const globalErrorHandler = (
 	res: Response,
 	next: NextFunction,
 ) => {
+	if (environmentVariables.NODE_ENV === 'development') {
+		console.log(err)
+	}
+
+	const errorSources: TErrorSources[] = []
 	let statusCode = 500
 	let message = 'Something Went Wrong!!'
 
@@ -20,6 +26,10 @@ export const globalErrorHandler = (
 		const duplicateVal = err.message.match(/"([^"]*)"/)
 		statusCode = 400
 		message = `${duplicateVal ? duplicateVal[1] : 'Value'} already exists`
+
+		// const simplifiedError = handlerDuplicateError(err)
+		// statusCode = simplifiedError.statusCode
+		// message = simplifiedError.message
 	}
 
 	// Mongoose CastError (invalid ObjectId, etc.)
