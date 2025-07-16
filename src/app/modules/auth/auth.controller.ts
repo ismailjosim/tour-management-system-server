@@ -7,6 +7,8 @@ import { AuthServices } from './auth.service'
 import AppError from '../../errorHelpers/AppError'
 import { setAuthCookie } from '../../utils/setCookie'
 import { JwtPayload } from 'jsonwebtoken'
+import { createUserToken } from '../../utils/userTokens'
+import { environmentVariables } from '../../configs/env'
 
 const credentialsLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -103,10 +105,34 @@ const resetPassword = catchAsync(
 		})
 	},
 )
+const googleCallbackController = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		let redirectTo = req.query.state ? (req.query.state as string) : ''
+
+		if (redirectTo.startsWith('/')) {
+			redirectTo = redirectTo.slice(1)
+		}
+
+		const user = req.user
+		// console.log(user)
+		if (!user) {
+			throw new AppError(httpStatus.NOT_FOUND, 'User Not Found')
+		}
+		const token = createUserToken(user)
+		setAuthCookie(res, token)
+
+		res.redirect(`${environmentVariables.FRONTEND_URL}/${redirectTo}`)
+	},
+)
+
+// after user successfully login via google if he want to navigate to a route then we can do that
+// for frontend part: http://localhost:5000/login?redirect=/booking [for example booking]
+// for backend res.redirect(`${environmentVariables.FRONTEND_URL}`/booking)
 
 export const AuthControllers = {
 	credentialsLogin,
 	getNewAccessToken,
 	logout,
 	resetPassword,
+	googleCallbackController,
 }
