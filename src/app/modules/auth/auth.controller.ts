@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import httpStatus from 'http-status-codes'
 import { NextFunction, Request, Response } from 'express'
@@ -9,20 +10,46 @@ import { setAuthCookie } from '../../utils/setCookie'
 import { JwtPayload } from 'jsonwebtoken'
 import { createUserToken } from '../../utils/userTokens'
 import { environmentVariables } from '../../configs/env'
+import passport from 'passport'
 
 const credentialsLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const loginInfo = await AuthServices.credentialsLogin(req.body)
+		// const loginInfo = await AuthServices.credentialsLogin(req.body)
 
-		// * set token access and refresh
-		setAuthCookie(res, loginInfo)
+		passport.authenticate('local', async (err: any, user: any, info: any) => {
+			if (err) {
+				//! this don't work
+				// return new AppError(httpStatus.BAD_REQUEST, err)
 
-		sendResponse(res, {
-			success: true,
-			statusCode: httpStatus.CREATED,
-			message: 'User login successfully',
-			data: loginInfo,
-		})
+				// * to do that
+				// return next(err) //* way-01
+				return next(new AppError(httpStatus.BAD_REQUEST, err)) //* way-2: this is organized.
+			}
+
+			if (!user) {
+				return next(new AppError(httpStatus.BAD_REQUEST, info?.message))
+			}
+
+			// generate access & refresh Token
+			const tokens = createUserToken(user)
+
+			// 🧼 Remove password before returning user data
+			const userWithoutPassword = user.toObject()
+			delete userWithoutPassword.password
+			// * set token access and refresh
+			setAuthCookie(res, tokens)
+
+			sendResponse(res, {
+				success: true,
+				statusCode: httpStatus.CREATED,
+				message: 'User login successfully',
+				data: {
+					accessToken: tokens.accessToken,
+					refreshToken: tokens.refreshToken,
+					user: userWithoutPassword,
+				},
+			})
+		})(req, res, next)
 	},
 )
 

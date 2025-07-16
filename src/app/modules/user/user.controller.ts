@@ -4,9 +4,6 @@ import httpStatus from 'http-status-codes'
 import { UserServices } from './user.service'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
-import { verifyToken } from '../../utils/jwt'
-import { environmentVariables } from '../../configs/env'
-import { JwtPayload } from 'jsonwebtoken'
 
 const crateUser = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
