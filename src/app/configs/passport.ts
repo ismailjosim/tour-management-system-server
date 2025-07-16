@@ -1,3 +1,4 @@
+// import httpStatus from 'http-status-codes'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import passport from 'passport'
 import {
@@ -9,18 +10,38 @@ import { environmentVariables } from './env'
 import { UserModel } from '../modules/user/user.model'
 import { Role } from '../modules/user/user.interface'
 import { Strategy as LocalStrategy } from 'passport-local'
-import passwordHashing from '../utils/passwordHashing'
+
+import bcrypt from 'bcryptjs'
 
 passport.use(
 	new LocalStrategy(
 		{ usernameField: 'email', passwordField: 'password' },
-		async (email: string, password: string, done: VerifyCallback) => {
+		async (email: string, password: string, done) => {
 			try {
 				const isUserExist = await UserModel.findOne({ email })
 				if (!isUserExist) {
-					return done(null, false, { message: 'User does not exist' })
+					// return done(null, false, { message: 'User does not exist' })
+					return done('User does not exist')
 				}
-				const hashedPassword = await passwordHashing(password)
+
+				// check user is google authenticated
+				const isUserGoogleAuthenticated = isUserExist.auths.some(
+					(providerObj) => providerObj.provider === 'google',
+				)
+				if (isUserGoogleAuthenticated && !isUserExist.password) {
+					return done(
+						'You previously signed in with your Google account. To use email and password to log in, please set a password for your account.',
+					)
+				}
+				// 🔐 Verify password
+				const isPasswordMatched = await bcrypt.compare(
+					password as string,
+					isUserExist.password as string,
+				)
+				if (!isPasswordMatched) {
+					return done("Password doesn't match!")
+				}
+				return done(null, isUserExist)
 			} catch (error) {
 				console.log(error)
 				done(error)
