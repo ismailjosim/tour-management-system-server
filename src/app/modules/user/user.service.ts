@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { IAuthProvider, IUser, Role } from './user.interface'
@@ -11,9 +12,9 @@ const createUserIntoDB = async (payload: Partial<IUser>) => {
 	const { email, password, ...rest } = payload
 
 	const isExist = await UserModel.findOne({ email })
-	if (isExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This user is already exist.')
-	}
+	// if (isExist) {
+	// 	throw new AppError(httpStatus.BAD_REQUEST, 'This user is already exist.')
+	// }
 
 	const hashedPassword = await passwordHashing(password as string)
 
