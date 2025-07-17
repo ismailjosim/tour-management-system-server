@@ -6,6 +6,10 @@ import { environmentVariables } from '../configs/env'
 import AppError from '../errorHelpers/AppError'
 import { ZodError } from 'zod'
 import { TErrorSources } from '../interfaces/error.types'
+import { handleDuplicateError } from '../helpers/handleDuplicateError'
+import { handleCastError } from '../helpers/handleCastError'
+import { handleMongooseValidationError } from '../helpers/handleZodValidationError'
+import { handleZodValidationError } from '../helpers/handleMongooseValidationError'
 
 export const globalErrorHandler = (
 	err: any,
@@ -17,7 +21,7 @@ export const globalErrorHandler = (
 		console.log(err)
 	}
 
-	const errorSources: TErrorSources[] = [
+	let errorSources: TErrorSources[] = [
 		// {
 		// 	path: 'isDeleted',
 		// 	message: 'Cast Failed',
@@ -28,46 +32,32 @@ export const globalErrorHandler = (
 
 	// Mongoose Duplicate Key Error
 	if (err.code === 11000) {
-		const duplicateVal = err.message.match(/"([^"]*)"/)
-		statusCode = 400
-		message = `${duplicateVal ? duplicateVal[1] : 'Value'} already exists`
-
-		// const simplifiedError = handlerDuplicateError(err)
-		// statusCode = simplifiedError.statusCode
-		// message = simplifiedError.message
+		const simplifiedError = handleDuplicateError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
 	}
 
 	// Mongoose CastError (invalid ObjectId, etc.)
 	else if (err instanceof mongoose.Error.CastError) {
-		statusCode = 400
-		message = `Invalid MongoDB: ${err.path}: ${err.value}`
+		const simplifiedError = handleCastError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
 	}
 
 	// Mongoose ValidationError
 	else if (err instanceof mongoose.Error.ValidationError) {
-		statusCode = 400
-		const errors = Object.values(err.errors)
-		errors.forEach((item: any) =>
-			errorSources.push({
-				path: item.path,
-				message: item.message,
-			}),
-		)
-		message = 'Validation Error Occurred ❌'
+		const simplifiedError = handleMongooseValidationError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
+		errorSources = simplifiedError.errorSources || []
 	}
 
 	// Zod Validation Error
 	else if (err instanceof ZodError) {
-		statusCode = 400
-		message = 'Zod Error Occurred ❌'
-
-		err.issues.forEach((item: any) =>
-			errorSources.push({
-				// path: "nickname inside lastName inside name ❌"
-				path: `${item.path.slice().reverse().join(' inside ')} is required ❌`,
-				message: item.message,
-			}),
-		)
+		const simplifiedError = handleZodValidationError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
+		errorSources = simplifiedError.errorSources || []
 	}
 
 	// Custom AppError
