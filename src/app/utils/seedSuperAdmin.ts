@@ -10,11 +10,12 @@ const seedSuperAdmin = async () => {
 		})
 
 		if (isSuperAdminExist) {
-			console.log('Super Admin already exist')
+			if (environmentVariables.NODE_ENV === 'development') {
+				console.log('Super Admin already exist')
+			}
 			return
 		}
 
-		console.log('Creating SUPER ADMIN is processing....🔃')
 		const hashedPassword = await passwordHashing(
 			environmentVariables.SUPER_ADMIN_PASS as string,
 		)
@@ -34,9 +35,13 @@ const seedSuperAdmin = async () => {
 		}
 
 		const superAdmin = await UserModel.create(payload)
-		console.log('Super Admin Created Successfully', superAdmin.name)
+		if (environmentVariables.NODE_ENV === 'development') {
+			console.log('Super Admin Created Successfully', superAdmin.name)
+		}
 	} catch (error) {
-		console.log(error)
+		if (environmentVariables.NODE_ENV === 'development') {
+			console.log(error)
+		}
 	}
 }
 

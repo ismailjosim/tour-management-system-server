@@ -75,7 +75,7 @@ export const globalErrorHandler = (
 		success: false,
 		message,
 		errorSources,
-		// err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
+		err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
 		stack:
 			environmentVariables.NODE_ENV === 'development' ? err.stack : undefined,
 	})
