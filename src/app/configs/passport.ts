@@ -43,7 +43,6 @@ passport.use(
 				}
 				return done(null, isUserExist)
 			} catch (error) {
-				console.log(error)
 				done(error)
 			}
 		},
@@ -106,7 +105,6 @@ passport.deserializeUser(async (id: string, done: any) => {
 		const user = await UserModel.findById(id)
 		done(null, user)
 	} catch (error) {
-		console.log(error)
 		done(error)
 	}
 })
