@@ -17,7 +17,12 @@ export const globalErrorHandler = (
 		console.log(err)
 	}
 
-	const errorSources: TErrorSources[] = []
+	const errorSources: TErrorSources[] = [
+		// {
+		// 	path: 'isDeleted',
+		// 	message: 'Cast Failed',
+		// },
+	]
 	let statusCode = 500
 	let message = 'Something Went Wrong!!'
 
@@ -41,20 +46,28 @@ export const globalErrorHandler = (
 	// Mongoose ValidationError
 	else if (err instanceof mongoose.Error.ValidationError) {
 		statusCode = 400
-		message = Object.values(err.errors)
-			.map((el) => el.message)
-			.join(', ')
+		const errors = Object.values(err.errors)
+		errors.forEach((item: any) =>
+			errorSources.push({
+				path: item.path,
+				message: item.message,
+			}),
+		)
+		message = 'Validation Error Occurred ❌'
 	}
 
 	// Zod Validation Error
 	else if (err instanceof ZodError) {
 		statusCode = 400
-		message = err.issues
-			.map((issue) => {
-				const path = issue.path.join('.') || 'field'
-				return `${path}: ${issue.message}`
-			})
-			.join('; ')
+		message = 'Zod Error Occurred ❌'
+
+		err.issues.forEach((item: any) =>
+			errorSources.push({
+				// path: "nickname inside lastName inside name ❌"
+				path: `${item.path.slice().reverse().join(' inside ')} is required ❌`,
+				message: item.message,
+			}),
+		)
 	}
 
 	// Custom AppError
@@ -71,7 +84,8 @@ export const globalErrorHandler = (
 	res.status(statusCode).json({
 		success: false,
 		message,
-		err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
+		errorSources,
+		// err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
 		stack:
 			environmentVariables.NODE_ENV === 'development' ? err.stack : undefined,
 	})
