@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express'
+import mongoose from 'mongoose'
 import { environmentVariables } from '../configs/env'
 import AppError from '../errorHelpers/AppError'
+import { ZodError } from 'zod'
+import { TErrorSources } from '../interfaces/error.types'
 
 export const globalErrorHandler = (
 	err: any,
@@ -10,20 +13,66 @@ export const globalErrorHandler = (
 	res: Response,
 	next: NextFunction,
 ) => {
+	if (environmentVariables.NODE_ENV === 'development') {
+		console.log(err)
+	}
+
+	const errorSources: TErrorSources[] = []
 	let statusCode = 500
 	let message = 'Something Went Wrong!!'
 
-	if (err instanceof AppError) {
+	// Mongoose Duplicate Key Error
+	if (err.code === 11000) {
+		const duplicateVal = err.message.match(/"([^"]*)"/)
+		statusCode = 400
+		message = `${duplicateVal ? duplicateVal[1] : 'Value'} already exists`
+
+		// const simplifiedError = handlerDuplicateError(err)
+		// statusCode = simplifiedError.statusCode
+		// message = simplifiedError.message
+	}
+
+	// Mongoose CastError (invalid ObjectId, etc.)
+	else if (err instanceof mongoose.Error.CastError) {
+		statusCode = 400
+		message = `Invalid MongoDB: ${err.path}: ${err.value}`
+	}
+
+	// Mongoose ValidationError
+	else if (err instanceof mongoose.Error.ValidationError) {
+		statusCode = 400
+		message = Object.values(err.errors)
+			.map((el) => el.message)
+			.join(', ')
+	}
+
+	// Zod Validation Error
+	else if (err instanceof ZodError) {
+		statusCode = 400
+		message = err.issues
+			.map((issue) => {
+				const path = issue.path.join('.') || 'field'
+				return `${path}: ${issue.message}`
+			})
+			.join('; ')
+	}
+
+	// Custom AppError
+	else if (err instanceof AppError) {
 		statusCode = err.statusCode
 		message = err.message
-	} else if (err instanceof Error) {
-		statusCode = 500
+	}
+
+	// General JS Error
+	else if (err instanceof Error) {
 		message = err.message
 	}
+
 	res.status(statusCode).json({
 		success: false,
 		message,
-		err,
-		stack: environmentVariables.NODE_ENV === 'development' ? err.stack : null,
+		err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
+		stack:
+			environmentVariables.NODE_ENV === 'development' ? err.stack : undefined,
 	})
 }
