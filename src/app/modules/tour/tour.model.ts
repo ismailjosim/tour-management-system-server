@@ -32,6 +32,7 @@ const tourSchema = new Schema<ITour>(
 	},
 	{
 		timestamps: true,
+		versionKey: false,
 	},
 )
 
