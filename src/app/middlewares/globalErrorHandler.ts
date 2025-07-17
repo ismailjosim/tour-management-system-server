@@ -6,6 +6,10 @@ import { environmentVariables } from '../configs/env'
 import AppError from '../errorHelpers/AppError'
 import { ZodError } from 'zod'
 import { TErrorSources } from '../interfaces/error.types'
+import { handleDuplicateError } from '../helpers/handleDuplicateError'
+import { handleCastError } from '../helpers/handleCastError'
+import { handleMongooseValidationError } from '../helpers/handleZodValidationError'
+import { handleZodValidationError } from '../helpers/handleMongooseValidationError'
 
 export const globalErrorHandler = (
 	err: any,
@@ -17,44 +21,43 @@ export const globalErrorHandler = (
 		console.log(err)
 	}
 
-	const errorSources: TErrorSources[] = []
+	let errorSources: TErrorSources[] = [
+		// {
+		// 	path: 'isDeleted',
+		// 	message: 'Cast Failed',
+		// },
+	]
 	let statusCode = 500
 	let message = 'Something Went Wrong!!'
 
 	// Mongoose Duplicate Key Error
 	if (err.code === 11000) {
-		const duplicateVal = err.message.match(/"([^"]*)"/)
-		statusCode = 400
-		message = `${duplicateVal ? duplicateVal[1] : 'Value'} already exists`
-
-		// const simplifiedError = handlerDuplicateError(err)
-		// statusCode = simplifiedError.statusCode
-		// message = simplifiedError.message
+		const simplifiedError = handleDuplicateError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
 	}
 
 	// Mongoose CastError (invalid ObjectId, etc.)
 	else if (err instanceof mongoose.Error.CastError) {
-		statusCode = 400
-		message = `Invalid MongoDB: ${err.path}: ${err.value}`
+		const simplifiedError = handleCastError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
 	}
 
 	// Mongoose ValidationError
 	else if (err instanceof mongoose.Error.ValidationError) {
-		statusCode = 400
-		message = Object.values(err.errors)
-			.map((el) => el.message)
-			.join(', ')
+		const simplifiedError = handleMongooseValidationError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
+		errorSources = simplifiedError.errorSources || []
 	}
 
 	// Zod Validation Error
 	else if (err instanceof ZodError) {
-		statusCode = 400
-		message = err.issues
-			.map((issue) => {
-				const path = issue.path.join('.') || 'field'
-				return `${path}: ${issue.message}`
-			})
-			.join('; ')
+		const simplifiedError = handleZodValidationError(err)
+		statusCode = simplifiedError.statusCode
+		message = simplifiedError.message
+		errorSources = simplifiedError.errorSources || []
 	}
 
 	// Custom AppError
@@ -71,7 +74,8 @@ export const globalErrorHandler = (
 	res.status(statusCode).json({
 		success: false,
 		message,
-		err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
+		errorSources,
+		// err: environmentVariables.NODE_ENV === 'development' ? err : undefined,
 		stack:
 			environmentVariables.NODE_ENV === 'development' ? err.stack : undefined,
 	})

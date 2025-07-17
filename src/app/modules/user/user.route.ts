@@ -9,7 +9,7 @@ const router = Router()
 
 router.post(
 	'/register',
-	// validateSchema(UserSchemaValidation.createUserSchemaValidation),
+	validateSchema(UserSchemaValidation.createUserSchemaValidation),
 	UserControllers.crateUser,
 )
 router.get(
