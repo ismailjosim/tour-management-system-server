@@ -12,7 +12,7 @@ const crateTourType = catchAsync(
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,
-			message: 'Tour Type Crated successfully',
+			message: 'Tour Type Created successfully',
 			data: result,
 		})
 	},
@@ -29,8 +29,35 @@ const getAllTourType = catchAsync(
 		})
 	},
 )
+const updateTourType = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.updateTourTypeIntoDB(
+			req.params.id,
+			req.body,
+		)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: `Tour Type successfully Update to ${req.body.name}`,
+			data: result,
+		})
+	},
+)
+const deleteTourType = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.deleteTourTypeFromDB(req.params.id)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: `Tour Type ${result?.name} Deleted successfully`,
+			data: result,
+		})
+	},
+)
 
 export const TourControllers = {
 	crateTourType,
 	getAllTourType,
+	updateTourType,
+	deleteTourType,
 }

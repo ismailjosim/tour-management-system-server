@@ -7,6 +7,7 @@ const tourTypeSchema = new Schema<ITourType>(
 	},
 	{
 		timestamps: true,
+		versionKey: false,
 	},
 )
 
