@@ -3,7 +3,7 @@ import AppError from '../../errorHelpers/AppError'
 import { ITourType } from './tour.interface'
 import { TourTypeModel } from './tour.model'
 
-const createTourTypeIntoDB = async (payload: Partial<ITourType>) => {
+const createTourTypeIntoDB = async (payload: ITourType) => {
 	const { name } = payload
 	const isTourTypeExist = await TourTypeModel.findOne({ name })
 
@@ -29,7 +29,6 @@ const getAllTourTypeFromDB = async () => {
 }
 const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
-	console.log(isTourTypeExist)
 	if (!isTourTypeExist) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
 	}
@@ -70,7 +69,6 @@ const deleteTourTypeFromDB = async (id: string) => {
 		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
 	}
 
-	// 3. Perform the update
 	const tour = await TourTypeModel.findByIdAndDelete(id)
 
 	return tour
