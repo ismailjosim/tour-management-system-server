@@ -1,9 +1,55 @@
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
-import { ITourType } from './tour.interface'
-import { TourTypeModel } from './tour.model'
+import { ITour, ITourType } from './tour.interface'
+import { TourModel, TourTypeModel } from './tour.model'
 
-const createTourTypeIntoDB = async (payload: Partial<ITourType>) => {
+const createTourIntoDB = async (payload: ITour) => {
+	const isTourExist = await TourModel.findOne({ title: payload.title })
+	if (isTourExist) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour is already exist')
+	}
+	const tour = await TourModel.create(payload)
+	return tour
+}
+
+const getAllTourFromDB = async () => {
+	const tours = await TourModel.find()
+	const totalTours = await TourModel.countDocuments()
+	return {
+		data: tours,
+		meta: {
+			total: totalTours,
+		},
+	}
+}
+
+const updateTourIntoDB = async (id: string, payload: ITour) => {
+	const isTourTypeExist = await TourModel.findById(id)
+	if (!isTourTypeExist) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
+	}
+
+	// 3. Perform the update
+	const tour = await TourModel.findByIdAndUpdate(id, payload, {
+		new: true,
+		runValidators: true,
+	})
+
+	return tour
+}
+
+const deleteTourFromDB = async (id: string) => {
+	const isTourTypeExist = await TourModel.findById(id)
+	if (!isTourTypeExist) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist')
+	}
+
+	const tour = await TourModel.findByIdAndDelete(id)
+	return tour
+}
+
+// All tour Type services
+const createTourTypeIntoDB = async (payload: ITourType) => {
 	const { name } = payload
 	const isTourTypeExist = await TourTypeModel.findOne({ name })
 
@@ -29,7 +75,6 @@ const getAllTourTypeFromDB = async () => {
 }
 const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
-	console.log(isTourTypeExist)
 	if (!isTourTypeExist) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
 	}
@@ -70,13 +115,16 @@ const deleteTourTypeFromDB = async (id: string) => {
 		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
 	}
 
-	// 3. Perform the update
 	const tour = await TourTypeModel.findByIdAndDelete(id)
 
 	return tour
 }
 
 export const TourServices = {
+	createTourIntoDB,
+	getAllTourFromDB,
+	updateTourIntoDB,
+	deleteTourFromDB,
 	createTourTypeIntoDB,
 	getAllTourTypeFromDB,
 	updateTourTypeIntoDB,
