@@ -37,5 +37,40 @@ const tourSchema = new Schema<ITour>(
 	},
 )
 
+tourSchema.pre('save', async function (next) {
+	if (this.isModified('title')) {
+		const baseSlug = this.title.toLowerCase().split(' ').join('-')
+		let slug = `${baseSlug}`
+
+		let counter = 0
+		while (await TourModel.exists({ slug })) {
+			slug = `${slug}-${counter++}` // dhaka-division-2
+		}
+
+		this.slug = slug
+	}
+	next()
+})
+
+tourSchema.pre('findOneAndUpdate', async function (next) {
+	const tour = this.getUpdate() as Partial<ITour>
+
+	if (tour.title) {
+		const baseSlug = tour.title.toLowerCase().split(' ').join('-')
+		let slug = `${baseSlug}`
+
+		let counter = 0
+		while (await TourModel.exists({ slug })) {
+			slug = `${slug}-${counter++}` // dhaka-division-2
+		}
+
+		tour.slug = slug
+	}
+
+	this.setUpdate(tour)
+
+	next()
+})
+
 export const TourTypeModel = model<ITourType>('TourType', tourTypeSchema)
 export const TourModel = model<ITour>('Tour', tourSchema)

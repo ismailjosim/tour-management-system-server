@@ -23,6 +23,7 @@ const getAllDivisionFromDB = async () => {
 }
 const getSingleDivisionFromDB = async (slug: string) => {
 	const division = await DivisionModel.findOne({ slug })
+
 	return {
 		data: division,
 	}
@@ -56,8 +57,8 @@ const updateDivisionIntoDB = async (
 	return division
 }
 const deleteDivisionFromDB = async (id: string) => {
-	const division = await DivisionModel.findByIdAndDelete(id)
-	return division
+	await DivisionModel.findByIdAndDelete(id)
+	return null
 }
 
 export const DivisionServices = {

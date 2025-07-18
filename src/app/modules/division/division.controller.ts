@@ -37,7 +37,9 @@ const getSingleDivision = catchAsync(
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
-			message: 'Division Retried successfully',
+			message: result.data
+				? 'Division Retried successfully'
+				: 'No Division Found',
 			data: result.data,
 		})
 	},
@@ -64,7 +66,7 @@ const deleteDivision = catchAsync(
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
-			message: `Division Deleted successfully`,
+			message: 'Division Deleted successfully',
 			data: result,
 		})
 	},

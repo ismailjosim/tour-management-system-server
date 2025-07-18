@@ -5,6 +5,32 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { TourServices } from './tour.service'
 
+const crateTour = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.createTourIntoDB(req.body)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'Tour Created successfully',
+			data: result,
+		})
+	},
+)
+
+const getAllTour = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.getAllTourFromDB()
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'All Tour Retried successfully',
+			data: result.data,
+			meta: result.meta,
+		})
+	},
+)
+
 // * Tour Type controller
 const crateTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -56,6 +82,8 @@ const deleteTourType = catchAsync(
 )
 
 export const TourControllers = {
+	crateTour,
+	getAllTour,
 	crateTourType,
 	getAllTourType,
 	updateTourType,
