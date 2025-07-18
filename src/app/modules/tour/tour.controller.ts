@@ -5,6 +5,7 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { TourServices } from './tour.service'
 
+// * All Tour controller
 const crateTour = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await TourServices.createTourIntoDB(req.body)
@@ -31,6 +32,30 @@ const getAllTour = catchAsync(
 	},
 )
 
+const updateTour = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.updateTourIntoDB(req.params.id, req.body)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: `Tour successfully Update to ${req.body.title}`,
+			data: result,
+		})
+	},
+)
+
+const deleteTour = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.deleteTourFromDB(req.params.id)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: `Tour Type ${result?.title} Deleted successfully`,
+			data: null,
+		})
+	},
+)
+
 // * Tour Type controller
 const crateTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -43,6 +68,7 @@ const crateTourType = catchAsync(
 		})
 	},
 )
+
 const getAllTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await TourServices.getAllTourTypeFromDB()
@@ -55,6 +81,7 @@ const getAllTourType = catchAsync(
 		})
 	},
 )
+
 const updateTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await TourServices.updateTourTypeIntoDB(
@@ -69,6 +96,7 @@ const updateTourType = catchAsync(
 		})
 	},
 )
+
 const deleteTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await TourServices.deleteTourTypeFromDB(req.params.id)
@@ -84,6 +112,8 @@ const deleteTourType = catchAsync(
 export const TourControllers = {
 	crateTour,
 	getAllTour,
+	updateTour,
+	deleteTour,
 	crateTourType,
 	getAllTourType,
 	updateTourType,

@@ -23,27 +23,14 @@ const getAllTourFromDB = async () => {
 	}
 }
 
-const updateTourIntoDB = async (id: string, payload: ITourType) => {
+const updateTourIntoDB = async (id: string, payload: ITour) => {
 	const isTourTypeExist = await TourModel.findById(id)
 	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
-	}
-
-	const existingTourTypeWithName = await TourModel.findOne({
-		name: payload.name,
-	})
-	if (
-		existingTourTypeWithName &&
-		existingTourTypeWithName._id.toString() !== id
-	) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			'Another Tour Type with this name already exists. Please choose a different name.',
-		)
+		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
 	}
 
 	// 3. Perform the update
-	const tour = await TourTypeModel.findByIdAndUpdate(id, payload, {
+	const tour = await TourModel.findByIdAndUpdate(id, payload, {
 		new: true,
 		runValidators: true,
 	})
@@ -52,16 +39,16 @@ const updateTourIntoDB = async (id: string, payload: ITourType) => {
 }
 
 const deleteTourFromDB = async (id: string) => {
-	const isTourTypeExist = await TourTypeModel.findById(id)
+	const isTourTypeExist = await TourModel.findById(id)
 	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
+		throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist')
 	}
 
-	const tour = await TourTypeModel.findByIdAndDelete(id)
-
+	const tour = await TourModel.findByIdAndDelete(id)
 	return tour
 }
 
+// All tour Type services
 const createTourTypeIntoDB = async (payload: ITourType) => {
 	const { name } = payload
 	const isTourTypeExist = await TourTypeModel.findOne({ name })
