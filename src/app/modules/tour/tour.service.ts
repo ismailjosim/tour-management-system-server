@@ -2,6 +2,7 @@ import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { ITour, ITourType } from './tour.interface'
 import { TourModel, TourTypeModel } from './tour.model'
+import { tourSearchableFields } from './tour.constant'
 
 const createTourIntoDB = async (payload: ITour) => {
 	const isTourExist = await TourModel.findOne({ title: payload.title })
@@ -12,9 +13,26 @@ const createTourIntoDB = async (payload: ITour) => {
 	return tour
 }
 
-const getAllTourFromDB = async () => {
-	const tours = await TourModel.find()
-	const totalTours = await TourModel.countDocuments()
+const getAllTourFromDB = async (query: Record<string, string>) => {
+	//* Filter functionalities
+	const filter = query
+	const searchTerm = query.searchTerm || ''
+
+	delete filter['searchTerm']
+
+	//* search functionalities
+	const searchQuery = {
+		$or: tourSearchableFields.map((field) => ({
+			[field]: { $regex: searchTerm, $options: 'i' },
+		})),
+	}
+
+	//* field limit functionalities
+
+	const tours = await TourModel.find(searchQuery).find(filter)
+	const totalTours = await TourModel.find(searchQuery)
+		.find(filter)
+		.countDocuments()
 	return {
 		data: tours,
 		meta: {

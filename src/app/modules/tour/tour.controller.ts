@@ -21,7 +21,10 @@ const crateTour = catchAsync(
 
 const getAllTour = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await TourServices.getAllTourFromDB()
+		const query = req.query
+		const result = await TourServices.getAllTourFromDB(
+			query as Record<string, string>,
+		)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
