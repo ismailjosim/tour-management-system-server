@@ -21,4 +21,7 @@ export interface ITour {
 	tourPlan?: string[]
 	maxGuest?: number
 	minAge?: number
+	// add new field for ongoing project
+	departureLocation?: string
+	arrivalLocation?: string
 }
