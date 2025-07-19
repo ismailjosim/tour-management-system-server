@@ -31,4 +31,38 @@ export class QueryBuilder<T> {
 		this.modelQuery = this.modelQuery.find(searchQuery)
 		return this
 	}
+	sort(): this {
+		const sort = this.query.sort || '-createdAt'
+		this.modelQuery = this.modelQuery.sort(sort)
+		return this
+	}
+	paginate(): this {
+		const page = Number(this.query.page) || 1
+		const limit = Number(this.query.limit) || 10
+		const skip = (page - 1) * limit
+
+		this.modelQuery = this.modelQuery.skip(skip).limit(limit)
+		return this
+	}
+	fields(): this {
+		const fields = this.query?.fields?.split(',').join(' ') || '' // title, location => title location
+		this.modelQuery = this.modelQuery.select(fields)
+		return this
+	}
+	build() {
+		return this.modelQuery
+	}
+	async getMeta() {
+		const totalDocuments = await this.modelQuery.model.countDocuments()
+		const page = Number(this.query.page) || 1
+		const limit = Number(this.query.limit) || 10
+		const totalPage = Math.ceil(totalDocuments / limit)
+		const meta = {
+			page,
+			limit,
+			total: totalDocuments,
+			totalPage: totalPage,
+		}
+		return meta
+	}
 }
