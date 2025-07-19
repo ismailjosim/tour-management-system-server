@@ -16,8 +16,9 @@ const divisionSchema = new Schema<IDivision>(
 	{ timestamps: true, versionKey: false },
 )
 
-// Generate slug
+// Generate slug middleware
 divisionSchema.pre('save', async function (next) {
+	// here this means the document that currently updated.
 	if (this.isModified('name')) {
 		const baseSlug = this.name.toLowerCase().split(' ').join('-')
 		let slug = `${baseSlug}-division`
@@ -32,6 +33,7 @@ divisionSchema.pre('save', async function (next) {
 	next()
 })
 
+// query middleware
 divisionSchema.pre('findOneAndUpdate', async function (next) {
 	const division = this.getUpdate() as Partial<IDivision>
 	if (division.name) {
@@ -43,7 +45,6 @@ divisionSchema.pre('findOneAndUpdate', async function (next) {
 		}
 	}
 	this.setUpdate(division)
-
 	next()
 })
 

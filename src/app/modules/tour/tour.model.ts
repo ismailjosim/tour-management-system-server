@@ -44,7 +44,7 @@ tourSchema.pre('save', async function (next) {
 
 		let counter = 0
 		while (await TourModel.exists({ slug })) {
-			slug = `${slug}-${counter++}` // dhaka-division-2
+			slug = `${slug}-${counter++}`
 		}
 
 		this.slug = slug
@@ -61,7 +61,7 @@ tourSchema.pre('findOneAndUpdate', async function (next) {
 
 		let counter = 0
 		while (await TourModel.exists({ slug })) {
-			slug = `${slug}-${counter++}` // dhaka-division-2
+			slug = `${slug}-${counter++}`
 		}
 
 		tour.slug = slug
