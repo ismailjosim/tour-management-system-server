@@ -2,6 +2,8 @@ import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { IDivision } from './division.interface'
 import { DivisionModel } from './division.model'
+import { QueryBuilder } from '../../utils/QueryBuilder'
+import { divisionSearchableFields } from './division.constant'
 
 const createDivisionIntoDB = async (payload: IDivision) => {
 	const isDivisionExist = await DivisionModel.findOne({ name: payload.name })
@@ -11,16 +13,26 @@ const createDivisionIntoDB = async (payload: IDivision) => {
 	const division = await DivisionModel.create(payload)
 	return division
 }
-const getAllDivisionFromDB = async () => {
-	const divisions = await DivisionModel.find()
-	const totalDivisions = await DivisionModel.countDocuments()
+
+const getAllDivisionFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(DivisionModel.find(), query)
+	const divisions = queryBuilder
+		.search(divisionSearchableFields)
+		.filter()
+		.sort()
+		.fields()
+		.paginate()
+	const [data, meta] = await Promise.all([
+		divisions.build(),
+		queryBuilder.getMeta(),
+	])
+
 	return {
-		data: divisions,
-		meta: {
-			total: totalDivisions,
-		},
+		data,
+		meta,
 	}
 }
+
 const getSingleDivisionFromDB = async (slug: string) => {
 	const division = await DivisionModel.findOne({ slug })
 
@@ -56,6 +68,7 @@ const updateDivisionIntoDB = async (
 	})
 	return division
 }
+
 const deleteDivisionFromDB = async (id: string) => {
 	await DivisionModel.findByIdAndDelete(id)
 	return null

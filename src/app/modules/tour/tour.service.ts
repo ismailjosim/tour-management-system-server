@@ -1,7 +1,9 @@
+import { QueryBuilder } from './../../utils/QueryBuilder'
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { ITour, ITourType } from './tour.interface'
 import { TourModel, TourTypeModel } from './tour.model'
+import { tourSearchableFields, tourTypeSearchableFields } from './tour.constant'
 
 const createTourIntoDB = async (payload: ITour) => {
 	const isTourExist = await TourModel.findOne({ title: payload.title })
@@ -11,16 +13,82 @@ const createTourIntoDB = async (payload: ITour) => {
 	const tour = await TourModel.create(payload)
 	return tour
 }
+/*
+const getAllTourFromDB = async (query: Record<string, string>) => {
+	//* Filter functionalities
+	const filter = query
+	const searchTerm = query.searchTerm || ''
+	const sort = query.sort || '-createdAt'
+	const fields = query?.fields?.split(',').join(' ') || '' // title, location => title location
+	const page = Number(query.page) || 1
+	const limit = Number(query.limit) || 10
+	const skip = (page - 1) * limit
 
-const getAllTourFromDB = async () => {
-	const tours = await TourModel.find()
-	const totalTours = await TourModel.countDocuments()
+	//* dynamically exclude filed from filter object
+	for (const field of excludeField) {
+		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+		delete filter[field]
+	}
+
+	//* search functionalities
+	const searchQuery = {
+		$or: tourSearchableFields.map((field) => ({
+			[field]: { $regex: searchTerm, $options: 'i' },
+		})),
+	}
+
+	//* sort functionalities
+	//* field limit functionalities:
+	//* skip and pagination: page=3&limit=10
+
+	const tours = await TourModel.find(searchQuery)
+		.find(filter)
+		.sort(sort)
+		.select(fields)
+		.skip(skip)
+		.limit(limit)
+
+	const totalTours = await TourModel.find(searchQuery)
+		.find(filter)
+		.countDocuments()
+
+	const totalPage = Math.ceil(totalTours / limit)
+
+	const meta = {
+		page,
+		limit,
+		total: totalTours,
+		totalPage: totalPage,
+	}
+
 	return {
 		data: tours,
-		meta: {
-			total: totalTours,
-		},
+		meta,
 	}
+}*/
+
+const getAllTourFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(TourModel.find(), query)
+	const tours = queryBuilder
+		.search(tourSearchableFields)
+		.filter()
+		.sort()
+		.fields()
+		.paginate()
+
+	const [data, meta] = await Promise.all([
+		tours.build(),
+		queryBuilder.getMeta(),
+	])
+
+	return {
+		data,
+		meta,
+	}
+}
+const getSingleTourFromDB = async (slug: string) => {
+	const tour = await TourModel.findOne({ slug })
+	return tour
 }
 
 const updateTourIntoDB = async (id: string, payload: ITour) => {
@@ -63,16 +131,32 @@ const createTourTypeIntoDB = async (payload: ITourType) => {
 
 	return tourType
 }
-const getAllTourTypeFromDB = async () => {
-	const tours = await TourTypeModel.find()
-	const totalTourTypes = await TourTypeModel.countDocuments()
+
+const getAllTourTypeFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(TourTypeModel.find(), query)
+	const tourType = queryBuilder
+		.search(tourTypeSearchableFields)
+		.filter()
+		.sort()
+		.fields()
+		.paginate()
+
+	const [data, meta] = await Promise.all([
+		tourType.build(),
+		queryBuilder.getMeta(),
+	])
+
 	return {
-		data: tours,
-		meta: {
-			total: totalTourTypes,
-		},
+		data,
+		meta,
 	}
 }
+
+const getSingleTourTypeFromDB = async (id: string) => {
+	const data = await TourTypeModel.findById(id)
+	return data
+}
+
 const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
 	if (!isTourTypeExist) {
@@ -109,6 +193,7 @@ const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 
 	return tour
 }
+
 const deleteTourTypeFromDB = async (id: string) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
 	if (!isTourTypeExist) {
@@ -123,10 +208,12 @@ const deleteTourTypeFromDB = async (id: string) => {
 export const TourServices = {
 	createTourIntoDB,
 	getAllTourFromDB,
+	getSingleTourFromDB,
 	updateTourIntoDB,
 	deleteTourFromDB,
 	createTourTypeIntoDB,
 	getAllTourTypeFromDB,
+	getSingleTourTypeFromDB,
 	updateTourTypeIntoDB,
 	deleteTourTypeFromDB,
 }

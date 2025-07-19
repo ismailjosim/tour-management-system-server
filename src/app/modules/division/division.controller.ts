@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DivisionModel } from './division.model'
 import httpStatus from 'http-status-codes'
 import { NextFunction, Request, Response } from 'express'
 import catchAsync from '../../utils/catchAsync'
@@ -19,7 +18,9 @@ const createDivision = catchAsync(
 )
 const getAllDivisions = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await DivisionServices.getAllDivisionFromDB()
+		const result = await DivisionServices.getAllDivisionFromDB(
+			req.query as Record<string, string>,
+		)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
