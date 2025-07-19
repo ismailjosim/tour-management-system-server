@@ -35,6 +35,21 @@ const getAllTour = catchAsync(
 	},
 )
 
+const getSingleTour = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.getSingleTourFromDB(
+			req.params.slug as string,
+		)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Tour Retried successfully',
+			data: result,
+		})
+	},
+)
+
 const updateTour = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const result = await TourServices.updateTourIntoDB(req.params.id, req.body)
@@ -74,13 +89,28 @@ const crateTourType = catchAsync(
 
 const getAllTourType = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await TourServices.getAllTourTypeFromDB()
+		const result = await TourServices.getAllTourTypeFromDB(
+			req.query as Record<string, string>,
+		)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
 			message: 'All Tour Type Retried successfully',
 			data: result.data,
 			meta: result.meta,
+		})
+	},
+)
+const getSingleTourType = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await TourServices.getSingleTourTypeFromDB(
+			req.params.id as string,
+		)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Tour Type Retried successfully',
+			data: result,
 		})
 	},
 )
@@ -115,10 +145,12 @@ const deleteTourType = catchAsync(
 export const TourControllers = {
 	crateTour,
 	getAllTour,
+	getSingleTour,
 	updateTour,
 	deleteTour,
 	crateTourType,
 	getAllTourType,
+	getSingleTourType,
 	updateTourType,
 	deleteTourType,
 }

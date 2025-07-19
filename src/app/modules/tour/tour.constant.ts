@@ -4,3 +4,4 @@ export const tourSearchableFields = [
 	'location',
 	'price',
 ]
+export const tourTypeSearchableFields = ['name']

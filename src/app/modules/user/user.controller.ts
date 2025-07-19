@@ -18,13 +18,26 @@ const crateUser = catchAsync(
 )
 const getAllUsers = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await UserServices.getAllUsersFromDB()
+		const result = await UserServices.getAllUsersFromDB(
+			req.query as Record<string, string>,
+		)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,
-			message: 'User Created successfully',
+			message: 'All User Retrieved successfully',
 			data: result.data,
 			meta: result.meta,
+		})
+	},
+)
+const getSingleUser = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await UserServices.getSingleUserFromDB(req.params.id)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'User Retrieved successfully',
+			data: result,
 		})
 	},
 )
@@ -61,5 +74,6 @@ const updateUser = catchAsync(
 export const UserControllers = {
 	crateUser,
 	getAllUsers,
+	getSingleUser,
 	updateUser,
 }

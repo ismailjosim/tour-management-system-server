@@ -6,6 +6,8 @@ import { UserModel } from './user.model'
 // import { environmentVariables } from '../../configs/env'
 import passwordHashing from '../../utils/passwordHashing'
 import { JwtPayload } from 'jsonwebtoken'
+import { QueryBuilder } from '../../utils/QueryBuilder'
+import { userSearchableFields } from './user.constant'
 
 const createUserIntoDB = async (payload: Partial<IUser>) => {
 	const { email, password, ...rest } = payload
@@ -31,21 +33,27 @@ const createUserIntoDB = async (payload: Partial<IUser>) => {
 	return user
 }
 
-const getAllUsersFromDB = async () => {
-	const query = {}
-	const users = await UserModel.find(query)
-	const totalUsers = await UserModel.countDocuments()
-
+const getAllUsersFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(UserModel.find(), query)
+	const users = queryBuilder
+		.search(userSearchableFields)
+		.filter()
+		.sort()
+		.fields()
+		.paginate()
+	const [data, meta] = await Promise.all([
+		users.build(),
+		queryBuilder.getMeta(),
+	])
 	return {
-		data: users,
-		meta: {
-			total: totalUsers,
-		},
+		data,
+		meta,
 	}
 }
 
-const getSingleUserFromDB = async () => {
-	return null
+const getSingleUserFromDB = async (id: string) => {
+	const user = await UserModel.findById(id)
+	return user
 }
 
 const updateUserIntoDB = async (

@@ -3,7 +3,7 @@ import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { ITour, ITourType } from './tour.interface'
 import { TourModel, TourTypeModel } from './tour.model'
-import { tourSearchableFields } from './tour.constant'
+import { tourSearchableFields, tourTypeSearchableFields } from './tour.constant'
 
 const createTourIntoDB = async (payload: ITour) => {
 	const isTourExist = await TourModel.findOne({ title: payload.title })
@@ -86,6 +86,10 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 		meta,
 	}
 }
+const getSingleTourFromDB = async (slug: string) => {
+	const tour = await TourModel.findOne({ slug })
+	return tour
+}
 
 const updateTourIntoDB = async (id: string, payload: ITour) => {
 	const isTourTypeExist = await TourModel.findById(id)
@@ -127,16 +131,32 @@ const createTourTypeIntoDB = async (payload: ITourType) => {
 
 	return tourType
 }
-const getAllTourTypeFromDB = async () => {
-	const tours = await TourTypeModel.find()
-	const totalTourTypes = await TourTypeModel.countDocuments()
+
+const getAllTourTypeFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(TourTypeModel.find(), query)
+	const tourType = queryBuilder
+		.search(tourTypeSearchableFields)
+		.filter()
+		.sort()
+		.fields()
+		.paginate()
+
+	const [data, meta] = await Promise.all([
+		tourType.build(),
+		queryBuilder.getMeta(),
+	])
+
 	return {
-		data: tours,
-		meta: {
-			total: totalTourTypes,
-		},
+		data,
+		meta,
 	}
 }
+
+const getSingleTourTypeFromDB = async (id: string) => {
+	const data = await TourTypeModel.findById(id)
+	return data
+}
+
 const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
 	if (!isTourTypeExist) {
@@ -173,6 +193,7 @@ const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
 
 	return tour
 }
+
 const deleteTourTypeFromDB = async (id: string) => {
 	const isTourTypeExist = await TourTypeModel.findById(id)
 	if (!isTourTypeExist) {
@@ -187,10 +208,12 @@ const deleteTourTypeFromDB = async (id: string) => {
 export const TourServices = {
 	createTourIntoDB,
 	getAllTourFromDB,
+	getSingleTourFromDB,
 	updateTourIntoDB,
 	deleteTourFromDB,
 	createTourTypeIntoDB,
 	getAllTourTypeFromDB,
+	getSingleTourTypeFromDB,
 	updateTourTypeIntoDB,
 	deleteTourTypeFromDB,
 }

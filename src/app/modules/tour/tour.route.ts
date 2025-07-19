@@ -15,6 +15,7 @@ router.post(
 	TourControllers.crateTourType,
 )
 router.get('/tour-types', TourControllers.getAllTourType)
+router.get('/tour-types/:id', TourControllers.getSingleTourType)
 router.patch(
 	'/tour-types/:id',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
@@ -35,6 +36,7 @@ router.post(
 )
 
 router.get('/', TourControllers.getAllTour)
+router.get('/:slug', TourControllers.getSingleTour)
 router.patch(
 	'/:id',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
