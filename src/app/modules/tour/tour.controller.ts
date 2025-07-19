@@ -38,7 +38,7 @@ const updateTour = catchAsync(
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
-			message: `Tour successfully Update to ${req.body.title}`,
+			message: `Tour successfully Updated`,
 			data: result,
 		})
 	},
