@@ -1,3 +1,4 @@
+import { QueryBuilder } from './../../utils/QueryBuilder'
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { ITour, ITourType } from './tour.interface'
@@ -13,13 +14,16 @@ const createTourIntoDB = async (payload: ITour) => {
 	const tour = await TourModel.create(payload)
 	return tour
 }
-
+/*
 const getAllTourFromDB = async (query: Record<string, string>) => {
 	//* Filter functionalities
 	const filter = query
 	const searchTerm = query.searchTerm || ''
 	const sort = query.sort || '-createdAt'
-	const fields = query.fields.split(',').join(' ') || '' // title, location => title location
+	const fields = query?.fields?.split(',').join(' ') || '' // title, location => title location
+	const page = Number(query.page) || 1
+	const limit = Number(query.limit) || 10
+	const skip = (page - 1) * limit
 
 	//* dynamically exclude filed from filter object
 	for (const field of excludeField) {
@@ -36,11 +40,7 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 
 	//* sort functionalities
 	//* field limit functionalities:
-
 	//* skip and pagination: page=3&limit=10
-	const page = Number(query.page) || 1
-	const limit = Number(query.limit) || 10
-	const skip = (page - 1) * limit
 
 	const tours = await TourModel.find(searchQuery)
 		.find(filter)
@@ -52,11 +52,65 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 	const totalTours = await TourModel.find(searchQuery)
 		.find(filter)
 		.countDocuments()
+
+	const totalPage = Math.ceil(totalTours / limit)
+
+	const meta = {
+		page,
+		limit,
+		total: totalTours,
+		totalPage: totalPage,
+	}
+
 	return {
 		data: tours,
-		meta: {
-			total: totalTours,
-		},
+		meta,
+	}
+}*/
+
+const getAllTourFromDB = async (query: Record<string, string>) => {
+	//* Filter functionalities
+	const filter = query
+	const sort = query.sort || '-createdAt'
+	const fields = query?.fields?.split(',').join(' ') || '' // title, location => title location
+	const page = Number(query.page) || 1
+	const limit = Number(query.limit) || 10
+	const skip = (page - 1) * limit
+
+	//* dynamically exclude filed from filter object
+	for (const field of excludeField) {
+		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+		delete filter[field]
+	}
+
+	//* sort functionalities
+	//* field limit functionalities:
+	//* skip and pagination: page=3&limit=10
+
+	// const tours = await TourModel.find(searchQuery)
+	// 	.find(filter)
+	// 	.sort(sort)
+	// 	.select(fields)
+	// 	.skip(skip)
+	// 	.limit(limit)
+
+	// const totalTours = await TourModel.find(searchQuery)
+	// 	.find(filter)
+	// 	.countDocuments()
+
+	const queryBuilder = new QueryBuilder(TourModel.find(), query)
+	const tours = await queryBuilder.search(tourSearchableFields).filter()
+		.modelQuery
+
+	// const meta = {
+	// 	page,
+	// 	limit,
+	// 	total: totalTours,
+	// 	totalPage: totalPage,
+	// }
+
+	return {
+		data: tours,
 	}
 }
 

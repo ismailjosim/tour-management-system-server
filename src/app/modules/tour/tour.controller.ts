@@ -30,7 +30,7 @@ const getAllTour = catchAsync(
 			statusCode: httpStatus.OK,
 			message: 'All Tour Retried successfully',
 			data: result.data,
-			meta: result.meta,
+			// meta: result.meta,
 		})
 	},
 )
