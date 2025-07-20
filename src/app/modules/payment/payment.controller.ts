@@ -3,17 +3,18 @@ import { Request, Response, NextFunction } from 'express'
 import catchAsync from '../../utils/catchAsync'
 import { PaymentService } from './payment.service'
 import { environmentVariables } from '../../configs/env'
+import sendResponse from '../../utils/sendResponse'
 
-// const initPayment = catchAsync(async (req: Request, res: Response) => {
-// 	const bookingId = req.params.bookingId
-// 	const result = await PaymentService.initPayment(bookingId as string)
-// 	sendResponse(res, {
-// 		statusCode: 201,
-// 		success: true,
-// 		message: 'Payment done successfully',
-// 		data: result,
-// 	})
-// })
+const initPayment = catchAsync(async (req: Request, res: Response) => {
+	const bookingId = req.params.bookingId
+	const result = await PaymentService.initPaymentIntoDB(bookingId as string)
+	sendResponse(res, {
+		statusCode: 201,
+		success: true,
+		message: 'Payment done successfully',
+		data: result,
+	})
+})
 
 const successPayment = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -61,6 +62,7 @@ const cancelPayment = catchAsync(
 // Add other controller methods here (e.g., get, update, delete)
 
 export const PaymentController = {
+	initPayment,
 	successPayment,
 	failPayment,
 	cancelPayment,
