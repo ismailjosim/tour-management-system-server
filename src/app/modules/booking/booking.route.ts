@@ -1,16 +1,42 @@
-import express from 'express';
-import { BookingController } from './booking.controller';
-// import { BookingValidation } from './booking.validation'; // Uncomment if needed
-// import validateRequest from '../../middlewares/validateRequest'; // Assuming you have a validation middleware
+import express from 'express'
+import { BookingController } from './booking.controller'
+import checkAuth from '../../middlewares/checkAuth'
+import { Role } from '../user/user.interface'
+import { BookingValidation } from './booking.validation'
+import validateSchema from '../../middlewares/validateRequest'
 
-const router = express.Router();
+const router = express.Router()
 
 router.post(
-  '/create-booking',
-  // validateRequest(BookingValidation.createBookingZodSchema), // Uncomment and use your validation middleware
-  BookingController.createBooking
-);
+	'/',
+	checkAuth(...Object.values(Role)),
+	validateSchema(BookingValidation.createBookingSchema),
+	BookingController.createBooking,
+)
 
-// Add other routes here (e.g., GET /, GET /:id, PATCH /:id, DELETE /:id)
+router.get(
+	'/',
+	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	BookingController.getAllBookings,
+)
 
-export const BookingRoutes = router;
+router.get(
+	'/my-bookings',
+	checkAuth(...Object.values(Role)),
+	BookingController.getUserBookings,
+)
+
+router.get(
+	'/:bookingId',
+	checkAuth(...Object.values(Role)),
+	BookingController.getSingleBooking,
+)
+
+router.patch(
+	'/:bookingId/status',
+	checkAuth(...Object.values(Role)),
+	validateSchema(BookingValidation.updateBookingStatusSchema),
+	BookingController.updateBookingStatus,
+)
+
+export const BookingRoutes = router
