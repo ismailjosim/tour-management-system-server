@@ -1,17 +1,15 @@
-import { z } from 'zod'; // Assuming you use Zod for validation
+import { z } from 'zod'
+import { BOOKING_STATUS } from './booking.interface'
 
-const createBookingZodSchema = z.object({
-  body: z.object({
-    // Define your validation schema here
-    // Example:
-    // title: z.string({ required_error: 'Title is required' }),
-    // description: z.string().optional(),
-  }),
-});
-
-// Add other validation schemas here (e.g., update, get by ID)
+const createBookingSchema = z.object({
+	tour: z.string(),
+	guestCount: z.number().int().positive(),
+})
+const updateBookingStatusSchema = z.object({
+	status: z.nativeEnum(BOOKING_STATUS),
+})
 
 export const BookingValidation = {
-  createBookingZodSchema,
-  // ...
-};
+	createBookingSchema,
+	updateBookingStatusSchema,
+}
