@@ -13,9 +13,9 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 			total_amount: payload.amount,
 			currency: 'BDT',
 			tran_id: payload.transactionId,
-			success_url: environmentVariables.SSL.SSL_SUCCESS_BACKEND_URL,
-			fail_url: environmentVariables.SSL.SSL_FAIL_BACKEND_URL,
-			cancel_url: environmentVariables.SSL.SSL_CANCEL_BACKEND_URL,
+			success_url: `${environmentVariables.SSL.SSL_SUCCESS_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=success`,
+			fail_url: `${environmentVariables.SSL.SSL_FAIL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=fail`,
+			cancel_url: `${environmentVariables.SSL.SSL_CANCEL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=cancel`,
 			// ipn_url: "http://localhost:3000/ipn"
 			shipping_method: 'N/A', // * these are hard coded value
 			shipping_name: 'Appointment', // * these are hard coded value
