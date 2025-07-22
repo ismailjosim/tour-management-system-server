@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { UserModel } from '../user/user.model'
@@ -6,6 +7,8 @@ import { BookingModel } from './booking.model'
 import { PaymentModel } from '../payment/payment.model'
 import { PAYMENT_STATUS } from '../payment/payment.interface'
 import { TourModel } from '../tour/tour.model'
+import { SSLService } from '../sslCommerz/sslCommerz.service'
+import { ISSlCommerz } from '../sslCommerz/sslCommerz.interface'
 
 const getTransactionId = () => {
 	return `tran_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -15,55 +18,98 @@ const createBookingIntoDB = async (
 	payload: Partial<IBooking>,
 	userId: string,
 ) => {
-	// step 01: create unique transaction ID
-	const transactionId = getTransactionId()
+	const session = await BookingModel.startSession()
+	session.startTransaction()
 
-	// step 02: check phone & address is Exist or not
-	const checkUserInfo = await UserModel.findById(userId)
-	if (!checkUserInfo?.phone || !checkUserInfo?.address) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			'Please Update Your Profile to Book a Tour',
+	try {
+		// 1️⃣ Generate Unique Transaction ID
+		const transactionId = getTransactionId()
+
+		// 2️⃣ Check User Info
+		const checkUserInfo = await UserModel.findById(userId).session(session)
+		if (!checkUserInfo?.phone || !checkUserInfo?.address) {
+			throw new AppError(
+				httpStatus.BAD_REQUEST,
+				'Please Update Your Profile to Book a Tour',
+			)
+		}
+
+		// 3️⃣ Fetch Tour Info
+		const tour = await TourModel.findById(payload.tour)
+			.select('costFrom')
+			.session(session)
+		if (!tour?.costFrom) {
+			throw new AppError(httpStatus.BAD_REQUEST, 'No Tour Cost Found')
+		}
+
+		// 4️⃣ Calculate Total Amount
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const amount = Number(tour.costFrom) * Number(payload.guestCount!)
+
+		// 5️⃣ Create Booking
+		const booking = await BookingModel.create(
+			[
+				{
+					user: userId,
+					status: BOOKING_STATUS.PENDING,
+					...payload,
+				},
+			],
+			{ session },
 		)
+
+		// 6️⃣ Create Payment
+		const payment = await PaymentModel.create(
+			[
+				{
+					booking: booking[0]._id,
+					status: PAYMENT_STATUS.UNPAID,
+					transactionId,
+					amount,
+				},
+			],
+			{ session },
+		)
+
+		// 7️⃣ Update Booking with Payment ID
+		const updatedBooking = await BookingModel.findByIdAndUpdate(
+			booking[0]._id,
+			{ payment: payment[0]._id },
+			{ new: true, session },
+		)
+			.populate('user', 'name email phone address')
+			.populate('tour', 'title costFrom')
+			.populate('payment')
+
+		// 8️⃣ SSL Commerz payment
+		const userAddress = (updatedBooking?.user as any).address
+		const userEmail = (updatedBooking?.user as any).email
+		const userPhoneNumber = (updatedBooking?.user as any).phone
+		const userName = (updatedBooking?.user as any).name
+		const sslPayload: ISSlCommerz = {
+			address: userAddress,
+			email: userEmail,
+			phoneNumber: userPhoneNumber,
+			name: userName,
+			amount: amount,
+			transactionId: transactionId,
+		}
+		const sslPayment = await SSLService.sslPaymentInit(sslPayload)
+		// console.log(sslPayment)
+
+		// ✅ Commit transaction
+		await session.commitTransaction()
+		session.endSession()
+
+		return {
+			paymentUrl: sslPayment.GatewayPageURL,
+			booking: updatedBooking,
+		}
+	} catch (error) {
+		await session.abortTransaction()
+		session.endSession()
+		throw error
 	}
-	// step 03: check tour cost from Tour
-	const tour = await TourModel.findById(payload.tour).select('costFrom')
-	if (!tour?.costFrom) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'No Tour Cost Found')
-	}
-
-	// step 04: calculate amount based on cost and guestCount
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const amount = Number(tour.costFrom) * Number(payload.guestCount!)
-
-	// step 05: create booking [userId, status: pending and othersInfo]
-	const booking = await BookingModel.create({
-		user: userId,
-		status: BOOKING_STATUS.PENDING,
-		...payload,
-	})
-
-	// step 06: create payment with booking, status:pending, unique TRXID and amount
-	const payment = await PaymentModel.create({
-		booking: booking._id,
-		status: PAYMENT_STATUS.UNPAID,
-		transactionId,
-		amount,
-	})
-
-	// step 07: update payment info
-	const updatedBooking = await BookingModel.findByIdAndUpdate(
-		booking._id,
-		{
-			payment: payment._id,
-		},
-		{ new: true, runValidators: true },
-	)
-		.populate('user', 'name email phone address')
-		.populate('tour', 'title costFrom')
-		.populate('payment')
-
-	return updatedBooking
 }
 
 const getAllBookingFromDB = async () => {
