@@ -4,10 +4,16 @@ import { NextFunction, Request, Response } from 'express'
 import catchAsync from '../../utils/catchAsync'
 import { DivisionServices } from './division.service'
 import sendResponse from '../../utils/sendResponse'
+import { IDivision } from './division.interface'
 
 const createDivision = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await DivisionServices.createDivisionIntoDB(req.body)
+		const payload: IDivision = {
+			...req.body,
+			thumbnail: req.file?.path,
+		}
+
+		const result = await DivisionServices.createDivisionIntoDB(payload)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,

@@ -15,11 +15,11 @@ const storage = new CloudinaryStorage({
 				.replace(/\s+/g, '-')
 				.replace(/[^a-z0-9\-]/g, '-')
 
-			const extension = file.originalname.split('.').pop()
+			// const extension = file.originalname.split('.').pop()
 
 			return `${Math.random()
 				.toString(36)
-				.substring(2)}-${Date.now()}-${rawName}.${extension}`
+				.substring(2)}-${Date.now()}-${rawName}` // here we don't need to add extension as cloudinary will handle it.
 		},
 		// Optional: folder: 'uploads'
 	},
