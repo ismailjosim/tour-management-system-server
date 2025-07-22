@@ -4,6 +4,7 @@ import validateSchema from '../../middlewares/validateRequest'
 import { TourSchemaValidation } from './tour.validation'
 import checkAuth from '../../middlewares/checkAuth'
 import { Role } from '../user/user.interface'
+import { multerUpload } from '../../configs/multer.config'
 
 const router = Router()
 
@@ -31,6 +32,7 @@ router.delete(
 router.post(
 	'/create',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	multerUpload.array('files'),
 	validateSchema(TourSchemaValidation.createTourValidationSchema),
 	TourControllers.crateTour,
 )
