@@ -4,17 +4,19 @@ import checkAuth from '../../middlewares/checkAuth'
 import validateSchema from '../../middlewares/validateRequest'
 import { DivisionSchemaValidation } from './division.validation'
 import { DivisionControllers } from './division.controller'
+import { multerUpload } from '../../configs/multer.config'
 
 const router = Router()
 
-router.get('/', DivisionControllers.getAllDivisions)
-router.get('/:slug', DivisionControllers.getSingleDivision)
 router.post(
 	'/create',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	multerUpload.single('file'),
 	validateSchema(DivisionSchemaValidation.createDivisionSchemaValidation),
 	DivisionControllers.createDivision,
 )
+router.get('/', DivisionControllers.getAllDivisions)
+router.get('/:slug', DivisionControllers.getSingleDivision)
 router.patch(
 	'/:id',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
