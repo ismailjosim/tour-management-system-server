@@ -97,6 +97,14 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
 	}
 
+	if (
+		payload.images &&
+		payload.images.length > 0 &&
+		isTourTypeExist.images &&
+		isTourTypeExist.images.length > 0
+	) {
+		payload.images = [...payload.images, ...isTourTypeExist.images]
+	}
 	// 3. Perform the update
 	const tour = await TourModel.findByIdAndUpdate(id, payload, {
 		new: true,

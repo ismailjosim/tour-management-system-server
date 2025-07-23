@@ -20,6 +20,7 @@ router.get('/:slug', DivisionControllers.getSingleDivision)
 router.patch(
 	'/:id',
 	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	multerUpload.single('file'),
 	validateSchema(DivisionSchemaValidation.updateDivisionSchemaValidation),
 	DivisionControllers.updateDivision,
 )

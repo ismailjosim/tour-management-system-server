@@ -10,8 +10,9 @@ import { handleDuplicateError } from '../helpers/handleDuplicateError'
 import { handleCastError } from '../helpers/handleCastError'
 import { handleMongooseValidationError } from '../helpers/handleZodValidationError'
 import { handleZodValidationError } from '../helpers/handleMongooseValidationError'
+import { deleteImageFromCloudinary } from '../configs/cloudinary.config'
 
-export const globalErrorHandler = (
+export const globalErrorHandler = async (
 	err: any,
 	req: Request,
 	res: Response,
@@ -19,6 +20,30 @@ export const globalErrorHandler = (
 ) => {
 	if (environmentVariables.NODE_ENV === 'development') {
 		console.log(err)
+	}
+
+	// ✅ Delete Single File if present
+	if (req.file?.path) {
+		try {
+			await deleteImageFromCloudinary(req.file.path)
+		} catch (error) {
+			console.error('❌ Failed to delete single image:', error)
+		}
+	}
+
+	// ✅ Delete Multiple Files if present
+	if (req.files && Array.isArray(req.files)) {
+		const imgUrls = (req.files as Express.Multer.File[]).map(
+			(file) => file.path,
+		)
+
+		await Promise.all(
+			imgUrls.map((url) =>
+				deleteImageFromCloudinary(url).catch((error) => {
+					console.error(`❌ Failed to delete image: ${url}`, error)
+				}),
+			),
+		)
 	}
 
 	let errorSources: TErrorSources[] = [
