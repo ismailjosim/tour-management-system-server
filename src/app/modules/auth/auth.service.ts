@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import httpStatus from 'http-status-codes'
 import { UserModel } from '../user/user.model'
@@ -7,6 +8,7 @@ import bcrypt from 'bcryptjs'
 import { createNewAccessTokenWithRefreshToken } from '../../utils/userTokens'
 import { JwtPayload } from 'jsonwebtoken'
 import passwordHashing from '../../utils/passwordHashing'
+import { IAuthProvider } from '../user/user.interface'
 
 // const credentialsLogin = async (payload: Partial<IUser>) => {
 // 	const { email, password } = payload
@@ -65,8 +67,44 @@ const resetPasswordIntoDB = async (
 	user!.password = await passwordHashing(newPassword)
 	user!.save()
 }
+const changePasswordIntoDB = async (
+	oldPassword: string,
+	newPassword: string,
+	decodedToken: JwtPayload,
+) => {
+	return {}
+}
+const setPasswordIntoDB = async (userId: string, plainPassword: string) => {
+	const user = await UserModel.findById(userId)
+	if (!user) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'User not found')
+	}
+
+	// check user is google auth or not
+	const checkGoogleAuth = user.auths.some(
+		(providerObj) => (providerObj.provider = 'google'),
+	)
+	if (user.password && checkGoogleAuth) {
+		// setup user new password
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'Password is already set. change password if you forget your previous password',
+		)
+	}
+	const passHashing = await passwordHashing(plainPassword)
+	const credentialProvider: IAuthProvider = {
+		provider: 'credentials',
+		providerId: user.email,
+	}
+	const auths: IAuthProvider[] = [...user.auths, credentialProvider]
+	user.password = passHashing
+	user.auths = auths
+	await user.save()
+}
 
 export const AuthServices = {
 	getNewAccessToken,
 	resetPasswordIntoDB,
+	setPasswordIntoDB,
+	changePasswordIntoDB,
 }
