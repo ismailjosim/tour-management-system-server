@@ -4,6 +4,7 @@ import AppError from '../../errorHelpers/AppError'
 import { ITour, ITourType } from './tour.interface'
 import { TourModel, TourTypeModel } from './tour.model'
 import { tourSearchableFields, tourTypeSearchableFields } from './tour.constant'
+import { deleteImageFromCloudinary } from '../../configs/cloudinary.config'
 
 const createTourIntoDB = async (payload: ITour) => {
 	const isTourExist = await TourModel.findOne({ title: payload.title })
@@ -13,7 +14,9 @@ const createTourIntoDB = async (payload: ITour) => {
 	const tour = await TourModel.create(payload)
 	return tour
 }
+
 /*
+
 const getAllTourFromDB = async (query: Record<string, string>) => {
 	//* Filter functionalities
 	const filter = query
@@ -65,7 +68,8 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 		data: tours,
 		meta,
 	}
-}*/
+}
+*/
 
 const getAllTourFromDB = async (query: Record<string, string>) => {
 	const queryBuilder = new QueryBuilder(TourModel.find(), query)
@@ -86,6 +90,7 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 		meta,
 	}
 }
+
 const getSingleTourFromDB = async (slug: string) => {
 	const tour = await TourModel.findOne({ slug })
 	return tour
@@ -97,7 +102,7 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
 	}
 
-	// process one: add new image with existing image
+	//* process one: add new image with existing image
 	if (
 		payload.images &&
 		payload.images.length > 0 &&
@@ -107,7 +112,7 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
 		payload.images = [...payload.images, ...isTourExist.images]
 	}
 
-	// process two: add image also remove images from our dB
+	//* process two: add image also remove images from our DB
 	if (
 		payload.deleteImage &&
 		payload.deleteImage.length > 0 &&
@@ -117,19 +122,44 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
 		const restDBImages = isTourExist.images.filter(
 			(imgUrl) => !payload.deleteImage?.includes(imgUrl),
 		)
-		payload.images = [...restDBImages, ...(payload?.images || [])]
+		// remove exist old image from payload
+		const updatedPayloadImages = (payload?.images || [])
+			.filter((imgUrl) => !payload.deleteImage?.includes(imgUrl))
+			.filter((imgUrl) => !restDBImages?.includes(imgUrl))
+
+		payload.images = [...restDBImages, ...updatedPayloadImages]
 	}
-	// 3. Perform the update
+	//* 3. Perform the update
 	const tour = await TourModel.findByIdAndUpdate(id, payload, {
 		new: true,
 		runValidators: true,
 	})
 
+	if (
+		payload.deleteImage &&
+		payload.deleteImage.length > 0 &&
+		isTourExist.images &&
+		isTourExist.images.length > 0
+	) {
+		await Promise.all(
+			payload.deleteImage.map((url) =>
+				deleteImageFromCloudinary(url).catch((error) => {
+					console.error(`❌ Failed to delete image: ${url}`, error)
+				}),
+			),
+		)
+	}
+
 	return tour
 }
 
 const deleteTourFromDB = async (id: string) => {
-	const tour = await TourModel.findByIdAndDelete({ id })
+	const isTourTypeExist = await TourModel.findById(id)
+	if (!isTourTypeExist) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist')
+	}
+
+	const tour = await TourModel.findByIdAndDelete(id)
 	return tour
 }
 
@@ -234,3 +264,8 @@ export const TourServices = {
 	updateTourTypeIntoDB,
 	deleteTourTypeFromDB,
 }
+
+/**
+
+ *
+ */
