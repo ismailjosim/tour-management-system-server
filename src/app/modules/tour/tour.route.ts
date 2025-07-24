@@ -36,7 +36,6 @@ router.post(
 	validateSchema(TourSchemaValidation.createTourValidationSchema),
 	TourControllers.crateTour,
 )
-
 router.get('/', TourControllers.getAllTour)
 router.get('/:slug', TourControllers.getSingleTour)
 router.patch(
