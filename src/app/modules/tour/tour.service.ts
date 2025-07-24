@@ -92,18 +92,32 @@ const getSingleTourFromDB = async (slug: string) => {
 }
 
 const updateTourIntoDB = async (id: string, payload: ITour) => {
-	const isTourTypeExist = await TourModel.findById(id)
-	if (!isTourTypeExist) {
+	const isTourExist = await TourModel.findById(id)
+	if (!isTourExist) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
 	}
 
+	// process one: add new image with existing image
 	if (
 		payload.images &&
 		payload.images.length > 0 &&
-		isTourTypeExist.images &&
-		isTourTypeExist.images.length > 0
+		isTourExist.images &&
+		isTourExist.images.length > 0
 	) {
-		payload.images = [...payload.images, ...isTourTypeExist.images]
+		payload.images = [...payload.images, ...isTourExist.images]
+	}
+
+	// process two: add image also remove images from our dB
+	if (
+		payload.deleteImage &&
+		payload.deleteImage.length > 0 &&
+		isTourExist.images &&
+		isTourExist.images.length > 0
+	) {
+		const restDBImages = isTourExist.images.filter(
+			(imgUrl) => !payload.deleteImage?.includes(imgUrl),
+		)
+		payload.images = [...restDBImages, ...(payload?.images || [])]
 	}
 	// 3. Perform the update
 	const tour = await TourModel.findByIdAndUpdate(id, payload, {
@@ -115,12 +129,7 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
 }
 
 const deleteTourFromDB = async (id: string) => {
-	const isTourTypeExist = await TourModel.findById(id)
-	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist')
-	}
-
-	const tour = await TourModel.findByIdAndDelete(id)
+	const tour = await TourModel.findByIdAndDelete({ id })
 	return tour
 }
 

@@ -24,4 +24,6 @@ export interface ITour {
 	// add new field for ongoing project
 	departureLocation?: string
 	arrivalLocation?: string
+	// to give the user specify which image properties will be deleted
+	deleteImage?: string[]
 }
