@@ -23,7 +23,7 @@ const credentialsLogin = catchAsync(
 
 				// * to do that
 				// return next(err) //* way-01
-				return next(new AppError(httpStatus.BAD_REQUEST, err)) //* way-2: this is organized.
+				return next(new AppError(httpStatus.BAD_REQUEST, err)) //* way-2: this is organized way.
 			}
 
 			if (!user) {

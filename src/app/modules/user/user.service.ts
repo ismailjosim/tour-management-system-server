@@ -48,9 +48,13 @@ const getAllUsersFromDB = async (query: Record<string, string>) => {
 		meta,
 	}
 }
+const getMeFromDB = async (userId: string) => {
+	const data = await UserModel.findById(userId).select('-password')
+	return data
+}
 
 const getSingleUserFromDB = async (id: string) => {
-	const user = await UserModel.findById(id)
+	const user = await UserModel.findById(id).select('-password')
 	return user
 }
 
@@ -115,4 +119,5 @@ export const UserServices = {
 	getAllUsersFromDB,
 	getSingleUserFromDB,
 	updateUserIntoDB,
+	getMeFromDB,
 }

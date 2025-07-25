@@ -3,6 +3,7 @@ import { AuthControllers } from './auth.controller'
 import checkAuth from '../../middlewares/checkAuth'
 import { Role } from '../user/user.interface'
 import passport from 'passport'
+import { environmentVariables } from '../../configs/env'
 
 const router = Router()
 
@@ -38,9 +39,12 @@ router.get(
 	},
 )
 // api/v1/auth/google/callback?state=/booking or /
+const message = 'there is something wrong. Please Contact With our Team'
 router.get(
 	'/google/callback',
-	passport.authenticate('google', { failureRedirect: '/login' }),
+	passport.authenticate('google', {
+		failureRedirect: `${environmentVariables.FRONTEND_URL}/login?error=${message}`,
+	}),
 	AuthControllers.googleCallbackController,
 )
 
