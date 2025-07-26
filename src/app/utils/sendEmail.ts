@@ -36,6 +36,7 @@ export const sendMail = async ({
 	attachments,
 }: ISendEmailOptions) => {
 	try {
+		console.log(to)
 		const templatePath = path.join(__dirname, `templates/${templateName}.ejs`)
 		const html = await ejs.renderFile(templatePath, templateData)
 
@@ -53,10 +54,22 @@ export const sendMail = async ({
 		if (environmentVariables.NODE_ENV === 'development') {
 			console.log(`\u2709\uFE0F Email sent to ${to}: ${info.messageId}`)
 		}
-	} catch (error) {
+	} catch (error: any) {
 		if (environmentVariables.NODE_ENV === 'development') {
-			console.log('Found Error while sending email: ', error)
+			console.error('Found Error while sending email: ', error)
+			if (error.responseCode) {
+				console.error('Nodemailer Response Code:', error.responseCode)
+			}
+			if (error.response) {
+				console.error('Nodemailer Response:', error.response) // This is the most important one!
+			}
+			if (error.command) {
+				console.error('Nodemailer Command:', error.command)
+			}
 		}
-		throw new AppError(401, 'Email Error')
+		throw new AppError(
+			401,
+			'Email Error: Authentication failed or SMTP configuration issue.',
+		)
 	}
 }
