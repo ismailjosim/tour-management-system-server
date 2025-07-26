@@ -132,6 +132,7 @@ const changePassword = catchAsync(
 		})
 	},
 )
+// if a logged in your want to change password
 const resetPassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const newPassword = req.body.newPassword
@@ -152,7 +153,25 @@ const resetPassword = catchAsync(
 		})
 	},
 )
+// if a google login in user want to set a password
 const setPassword = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const { password } = req.body
+		const decodedToken = req.user as JwtPayload
+
+		await AuthServices.setPasswordIntoDB(decodedToken.userId, password)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Password set Successfully',
+			data: null,
+		})
+	},
+)
+
+// user forget password but not logged in currently
+const forgetPassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const { password } = req.body
 		const decodedToken = req.user as JwtPayload
@@ -198,5 +217,6 @@ export const AuthControllers = {
 	resetPassword,
 	changePassword,
 	setPassword,
+	forgetPassword,
 	googleCallbackController,
 }
