@@ -12,6 +12,27 @@ import { createUserToken } from '../../utils/userTokens'
 import { environmentVariables } from '../../configs/env'
 import passport from 'passport'
 
+// googleCallbackController
+const googleCallbackController = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		let redirectTo = req.query.state ? (req.query.state as string) : ''
+
+		if (redirectTo.startsWith('/')) {
+			redirectTo = redirectTo.slice(1)
+		}
+
+		const user = req.user
+		if (!user) {
+			throw new AppError(httpStatus.NOT_FOUND, 'User Not Found')
+		}
+		const token = createUserToken(user)
+		setAuthCookie(res, token)
+
+		res.redirect(`${environmentVariables.FRONTEND_URL}/${redirectTo}`)
+	},
+)
+
+// credentialsLogin
 const credentialsLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		// const loginInfo = await AuthServices.credentialsLogin(req.body)
@@ -53,6 +74,7 @@ const credentialsLogin = catchAsync(
 	},
 )
 
+// getNewAccessToken
 const getNewAccessToken = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const refreshToken = req.cookies.refreshToken
@@ -86,6 +108,7 @@ const getNewAccessToken = catchAsync(
 	},
 )
 
+// user logout
 const logout = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		// ❌ Clear access token cookie
@@ -112,13 +135,16 @@ const logout = catchAsync(
 	},
 )
 
+// section: Password change, forget, reset and set
+
+//* if a logged in your want to change password
 const changePassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const newPassword = req.body.newPassword
 		const oldPassword = req.body.oldPassword
 		const decodedToken = req.user
 
-		await AuthServices.resetPasswordIntoDB(
+		await AuthServices.changePasswordIntoDB(
 			oldPassword,
 			newPassword,
 			decodedToken as JwtPayload,
@@ -132,28 +158,8 @@ const changePassword = catchAsync(
 		})
 	},
 )
-// if a logged in your want to change password
-const resetPassword = catchAsync(
-	async (req: Request, res: Response, next: NextFunction) => {
-		const newPassword = req.body.newPassword
-		const oldPassword = req.body.oldPassword
-		const decodedToken = req.user
 
-		await AuthServices.resetPasswordIntoDB(
-			oldPassword,
-			newPassword,
-			decodedToken as JwtPayload,
-		)
-
-		sendResponse(res, {
-			success: true,
-			statusCode: httpStatus.OK,
-			message: 'Password reset Successfully',
-			data: null,
-		})
-	},
-)
-// if a google login in user want to set a password
+//* if a google login in user want to set a password
 const setPassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const { password } = req.body
@@ -170,45 +176,35 @@ const setPassword = catchAsync(
 	},
 )
 
-// user forget password but not logged in currently
-const forgetPassword = catchAsync(
+// user forget password but not currently logged in
+const forgotPassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const { password } = req.body
-		const decodedToken = req.user as JwtPayload
-
-		await AuthServices.setPasswordIntoDB(decodedToken.userId, password)
-
+		const { email } = req.body
+		await AuthServices.forgotPasswordIntoDB(email)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
-			message: 'Password set Successfully',
+			message: 'Email sent Successfully',
 			data: null,
 		})
 	},
 )
 
-const googleCallbackController = catchAsync(
+const resetPassword = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		let redirectTo = req.query.state ? (req.query.state as string) : ''
+		const payload = req.body
+		const decodedToken = req.user
 
-		if (redirectTo.startsWith('/')) {
-			redirectTo = redirectTo.slice(1)
-		}
+		await AuthServices.resetPasswordIntoDB(payload, decodedToken as JwtPayload)
 
-		const user = req.user
-		if (!user) {
-			throw new AppError(httpStatus.NOT_FOUND, 'User Not Found')
-		}
-		const token = createUserToken(user)
-		setAuthCookie(res, token)
-
-		res.redirect(`${environmentVariables.FRONTEND_URL}/${redirectTo}`)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Password reset Successfully',
+			data: null,
+		})
 	},
 )
-
-// after user successfully login via google if he want to navigate to a route then we can do that
-// for frontend part: http://localhost:5000/login?redirect=/booking [for example booking]
-// for backend res.redirect(`${environmentVariables.FRONTEND_URL}`/booking)
 
 export const AuthControllers = {
 	credentialsLogin,
@@ -217,6 +213,6 @@ export const AuthControllers = {
 	resetPassword,
 	changePassword,
 	setPassword,
-	forgetPassword,
+	forgotPassword,
 	googleCallbackController,
 }

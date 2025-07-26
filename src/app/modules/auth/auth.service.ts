@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import httpStatus from 'http-status-codes'
 import { UserModel } from '../user/user.model'
@@ -8,7 +9,10 @@ import bcrypt from 'bcryptjs'
 import { createNewAccessTokenWithRefreshToken } from '../../utils/userTokens'
 import { JwtPayload } from 'jsonwebtoken'
 import passwordHashing from '../../utils/passwordHashing'
-import { IAuthProvider } from '../user/user.interface'
+import { IAuthProvider, IsActive } from '../user/user.interface'
+import jwt from 'jsonwebtoken'
+import { environmentVariables } from '../../configs/env'
+import { sendMail } from '../../utils/sendEmail'
 
 // const credentialsLogin = async (payload: Partial<IUser>) => {
 // 	const { email, password } = payload
@@ -51,7 +55,7 @@ const getNewAccessToken = async (refreshToken: string) => {
 		accessToken: newAccessToken,
 	}
 }
-const resetPasswordIntoDB = async (
+const changePasswordIntoDB = async (
 	oldPassword: string,
 	newPassword: string,
 	decodedToken: JwtPayload,
@@ -65,15 +69,9 @@ const resetPasswordIntoDB = async (
 		throw new AppError(httpStatus.UNAUTHORIZED, "Old Password doesn't match")
 	}
 	user!.password = await passwordHashing(newPassword)
-	user!.save()
+	await user!.save()
 }
-const changePasswordIntoDB = async (
-	oldPassword: string,
-	newPassword: string,
-	decodedToken: JwtPayload,
-) => {
-	return {}
-}
+
 const setPasswordIntoDB = async (userId: string, plainPassword: string) => {
 	const user = await UserModel.findById(userId)
 	if (!user) {
@@ -102,9 +100,75 @@ const setPasswordIntoDB = async (userId: string, plainPassword: string) => {
 	await user.save()
 }
 
+const forgotPasswordIntoDB = async (email: string) => {
+	const isUserExist = await UserModel.findOne({ email })
+	if (!isUserExist) {
+		throw new AppError(httpStatus.BAD_REQUEST, "This user doesn't exist")
+	}
+	if (
+		isUserExist.isActive === IsActive.BLOCKED ||
+		isUserExist.isActive === IsActive.INACTIVE
+	) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			`User is ${isUserExist.isActive}`,
+		)
+	}
+	if (isUserExist.isDeleted) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'user is removed')
+	}
+
+	if (!isUserExist.isVerified) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'user is not verified')
+	}
+	const jwtPayload = {
+		userId: isUserExist._id,
+		email: isUserExist.email,
+		role: isUserExist.role,
+	}
+
+	const resetToken = jwt.sign(
+		jwtPayload,
+		environmentVariables.JWT_ACCESS_SECRET,
+		{
+			expiresIn: '10m',
+		},
+	)
+	const resetUILink = `${environmentVariables.FRONTEND_URL}/reset-password?id=${isUserExist._id}&token=${resetToken}`
+
+	sendMail({
+		to: isUserExist.email,
+		subject: 'Password Reset',
+		templateName: 'forgetPassword',
+		templateData: {
+			name: isUserExist.name,
+			resetUILink,
+		},
+	})
+
+	// http://localhost:5173/reset-password?id=68834d631567f07b17974762&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODgzNGQ2MzE1NjdmMDdiMTc5NzQ3NjIiLCJlbWFpbCI6Im1kamFzaW0ucGhAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM1Mjk1MTYsImV4cCI6MTc1MzUzMDExNn0.6EwtnsSGMutZTv6Ip787IXbeoVUoJOAeokSoRUNJp2I
+}
+const resetPasswordIntoDB = async (
+	payload: Record<string, any>,
+	decodedToken: JwtPayload,
+) => {
+	if (payload.id !== decodedToken.userId) {
+		throw new AppError(401, "you don't have permission to change this password")
+	}
+
+	const isUserExist = await UserModel.findById(decodedToken.userId)
+
+	if (!isUserExist) {
+		throw new AppError(401, "This uer doesn't Exist!")
+	}
+
+	isUserExist!.password = await passwordHashing(payload.newPassword)
+	await isUserExist!.save()
+}
 export const AuthServices = {
 	getNewAccessToken,
 	resetPasswordIntoDB,
 	setPasswordIntoDB,
+	forgotPasswordIntoDB,
 	changePasswordIntoDB,
 }

@@ -16,23 +16,21 @@ router.post(
 	AuthControllers.changePassword,
 )
 router.post(
-	'/reset-password',
-	checkAuth(...Object.values(Role)),
-	AuthControllers.resetPassword,
-)
-router.post(
 	'/set-password',
 	checkAuth(...Object.values(Role)),
 	AuthControllers.setPassword,
 )
 
-router.post('/forget-password', AuthControllers.forgetPassword)
+router.post('/forgot-password', AuthControllers.forgotPassword)
+router.post(
+	'/reset-password',
+	checkAuth(...Object.values(Role)),
+	AuthControllers.resetPassword,
+)
 
 router.get(
 	'/google',
 	async (req: Request, res: Response, next: NextFunction) => {
-		// * if user click /booking but -> /login -> after successfully google login -> /booking in frontend
-		// * if user create directly /login then -> after successfully google login -> / mean homepage in frontend
 		const redirect = req.query?.redirect || '/'
 		passport.authenticate('google', {
 			scope: ['profile', 'email'],
