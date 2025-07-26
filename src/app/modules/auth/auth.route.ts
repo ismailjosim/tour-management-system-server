@@ -3,6 +3,7 @@ import { AuthControllers } from './auth.controller'
 import checkAuth from '../../middlewares/checkAuth'
 import { Role } from '../user/user.interface'
 import passport from 'passport'
+import { environmentVariables } from '../../configs/env'
 
 const router = Router()
 
@@ -15,21 +16,21 @@ router.post(
 	AuthControllers.changePassword,
 )
 router.post(
-	'/reset-password',
-	checkAuth(...Object.values(Role)),
-	AuthControllers.resetPassword,
-)
-router.post(
 	'/set-password',
 	checkAuth(...Object.values(Role)),
 	AuthControllers.setPassword,
 )
 
+router.post('/forgot-password', AuthControllers.forgotPassword)
+router.post(
+	'/reset-password',
+	checkAuth(...Object.values(Role)),
+	AuthControllers.resetPassword,
+)
+
 router.get(
 	'/google',
 	async (req: Request, res: Response, next: NextFunction) => {
-		// * if user click /booking but -> /login -> after successfully google login -> /booking in frontend
-		// * if user create directly /login then -> after successfully google login -> / mean homepage in frontend
 		const redirect = req.query?.redirect || '/'
 		passport.authenticate('google', {
 			scope: ['profile', 'email'],
@@ -38,9 +39,12 @@ router.get(
 	},
 )
 // api/v1/auth/google/callback?state=/booking or /
+const message = 'there is something wrong. Please Contact With our Team'
 router.get(
 	'/google/callback',
-	passport.authenticate('google', { failureRedirect: '/login' }),
+	passport.authenticate('google', {
+		failureRedirect: `${environmentVariables.FRONTEND_URL}/login?error=${message}`,
+	}),
 	AuthControllers.googleCallbackController,
 )
 

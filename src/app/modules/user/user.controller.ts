@@ -4,6 +4,7 @@ import httpStatus from 'http-status-codes'
 import { UserServices } from './user.service'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
+import { JwtPayload } from 'jsonwebtoken'
 
 const crateUser = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -27,6 +28,18 @@ const getAllUsers = catchAsync(
 			message: 'All User Retrieved successfully',
 			data: result.data,
 			meta: result.meta,
+		})
+	},
+)
+const getMe = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const decodedToken = req.user as JwtPayload
+		const result = await UserServices.getMeFromDB(decodedToken.userId)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'User info Retrieved successfully',
+			data: result,
 		})
 	},
 )
@@ -76,4 +89,5 @@ export const UserControllers = {
 	getAllUsers,
 	getSingleUser,
 	updateUser,
+	getMe,
 }

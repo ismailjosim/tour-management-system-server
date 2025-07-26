@@ -1,4 +1,3 @@
-// import httpStatus from 'http-status-codes'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import passport from 'passport'
 import {
@@ -8,7 +7,7 @@ import {
 } from 'passport-google-oauth20'
 import { environmentVariables } from './env'
 import { UserModel } from '../modules/user/user.model'
-import { Role } from '../modules/user/user.interface'
+import { IsActive, Role } from '../modules/user/user.interface'
 import { Strategy as LocalStrategy } from 'passport-local'
 
 import bcrypt from 'bcryptjs'
@@ -22,6 +21,22 @@ passport.use(
 				if (!isUserExist) {
 					// return done(null, false, { message: 'User does not exist' })
 					return done('User does not exist')
+				}
+
+				// * check user status, validity
+				if (isUserExist.isDeleted) {
+					return done('user is deleted')
+				}
+
+				if (!isUserExist.isVerified) {
+					return done('Your are not verified')
+				}
+
+				if (
+					isUserExist.isActive === IsActive.BLOCKED ||
+					isUserExist.isActive === IsActive.INACTIVE
+				) {
+					return done(`User is ${isUserExist.isActive}`)
 				}
 
 				// check user is google authenticated
@@ -71,6 +86,24 @@ passport.use(
 				}
 				// check email is already exist into DB
 				let user = await UserModel.findOne({ email })
+
+				// * check user status, validity
+				if (user && user?.isDeleted) {
+					return done('user is deleted')
+				}
+
+				if (user && !user?.isVerified) {
+					return done('Your are not verified')
+				}
+
+				if (
+					user &&
+					(user?.isActive === IsActive.BLOCKED ||
+						user?.isActive === IsActive.INACTIVE)
+				) {
+					return done(`User is ${user?.isActive}`)
+				}
+
 				if (!user) {
 					// crate new user
 					user = await UserModel.create({
