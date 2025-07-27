@@ -7,6 +7,7 @@ import notFound from './app/middlewares/notFound'
 import passport from 'passport'
 import expressSession from 'express-session'
 import './app/configs/passport'
+import { environmentVariables } from './app/configs/env'
 
 const app: Application = express()
 
@@ -23,7 +24,12 @@ app.use(passport.session())
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app.use(
+	cors({
+		origin: environmentVariables.FRONTEND_URL,
+		credentials: true,
+	}),
+)
 
 //* Application Routes
 app.use('/api/v1', router)
