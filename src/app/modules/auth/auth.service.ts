@@ -68,6 +68,21 @@ const changePasswordIntoDB = async (
 	if (!isOldPasswordMatch) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Old Password doesn't match")
 	}
+	// check the old password and new password are same
+	if (oldPassword === newPassword) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'New Password must be different from Old Password',
+		)
+	}
+	// password can't be incudes user email
+	if (newPassword.includes(user!.email)) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'Password can not includes user email',
+		)
+	}
+
 	user!.password = await passwordHashing(newPassword)
 	await user!.save()
 }

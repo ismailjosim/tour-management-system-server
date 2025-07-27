@@ -79,8 +79,6 @@ const updateUserSchemaValidation = z.object({
 		.max(50, { message: 'Name is too long' })
 		.optional(),
 
-	password: passwordSchema.optional(),
-
 	phone: z
 		.string({ invalid_type_error: 'Phone must be a string' })
 		.regex(/^(?:\+8801|8801|01)[0-9]{9}$/, {
