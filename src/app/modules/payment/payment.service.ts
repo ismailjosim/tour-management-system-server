@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus, { StatusCodes } from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
@@ -11,6 +12,10 @@ import { generatePDF, IInvoiceData } from '../../utils/invoice'
 import { IUser } from '../user/user.interface'
 import { ITour } from '../tour/tour.interface'
 import { sendMail } from '../../utils/sendEmail'
+import { uploadBufferToCloudinary } from '../../configs/cloudinary.config'
+import catchAsync from '../../utils/catchAsync'
+import { NextFunction, Request, Response } from 'express'
+import sendResponse from '../../utils/sendResponse'
 
 const initPaymentIntoDB = async (bookingId: string) => {
 	const payment = await PaymentModel.findOne({ booking: bookingId })
@@ -92,6 +97,19 @@ const successPaymentIntoDB = async (query: Record<string, string>) => {
 		}
 
 		const pdfBuffer = await generatePDF(invoiceData)
+
+		// manually upload PDF into our cloudinary store
+		const cloudinaryResult = await uploadBufferToCloudinary(
+			pdfBuffer,
+			'invoice',
+		)
+		await PaymentModel.findByIdAndUpdate(
+			updatedPayment._id,
+			{
+				invoiceUrl: cloudinaryResult?.secure_url,
+			},
+			{ runValidators: true, session },
+		)
 
 		// send user email
 		await sendMail({
@@ -189,9 +207,23 @@ const cancelPaymentIntoDB = async (query: Record<string, string>) => {
 	}
 }
 
+const getInvoiceDownloadURLFromDB = async (id: string) => {
+	const payment = await PaymentModel.findById(id).select('invoiceUrl')
+
+	if (!payment) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Payment Not Found')
+	}
+	if (!payment.invoiceUrl) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'InvoiceUrl Not Found')
+	}
+
+	return payment
+}
+
 export const PaymentService = {
 	initPaymentIntoDB,
 	successPaymentIntoDB,
 	failPaymentIntoDB,
 	cancelPaymentIntoDB,
+	getInvoiceDownloadURLFromDB,
 }
