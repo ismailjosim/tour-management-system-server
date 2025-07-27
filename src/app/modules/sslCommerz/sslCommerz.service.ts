@@ -4,6 +4,7 @@ import { environmentVariables } from '../../configs/env'
 import AppError from '../../errorHelpers/AppError'
 import { ISSlCommerz } from './sslCommerz.interface'
 import axios from 'axios'
+import { PaymentModel } from '../payment/payment.model'
 
 const sslPaymentInit = async (payload: ISSlCommerz) => {
 	try {
@@ -16,7 +17,7 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 			success_url: `${environmentVariables.SSL.SSL_SUCCESS_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=success`,
 			fail_url: `${environmentVariables.SSL.SSL_FAIL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=fail`,
 			cancel_url: `${environmentVariables.SSL.SSL_CANCEL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=cancel`,
-			// ipn_url: "http://localhost:3000/ipn"
+			ipn_url: environmentVariables.SSL.SSL_IPN_URL,
 			shipping_method: 'N/A', // * these are hard coded value
 			shipping_name: 'Appointment', // * these are hard coded value
 			product_category: 'Service', // * these are hard coded value
@@ -55,6 +56,33 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 		throw new AppError(httpStatus.BAD_REQUEST, error.message)
 	}
 }
+
+const validatePayment = async (payload: any) => {
+	try {
+		const response = await axios({
+			method: 'GET',
+			url: `${environmentVariables.SSL.SSL_VALIDATION_API}?val_id=${payload.val_id}&store_id=${environmentVariables.SSL.SSL_STORE_ID}&store_pass=${environmentVariables.SSL.SSL_STORE_PASS}`,
+		})
+
+		console.log('SSLCommerz Validate API Response ', response.data)
+
+		await PaymentModel.updateOne(
+			{ transactionId: payload.tran.id },
+			{ paymentGatewayData: response.data },
+			{ runValidators: true },
+		)
+	} catch (error: any) {
+		if (environmentVariables.NODE_ENV === 'development') {
+			console.log('Found Error While Validate Payment: ', error)
+		}
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			`Found Error While Validate Payment: ${error.message}`,
+		)
+	}
+}
+
 export const SSLService = {
 	sslPaymentInit,
+	validatePayment,
 }

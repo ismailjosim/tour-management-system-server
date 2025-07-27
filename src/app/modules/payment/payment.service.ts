@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus, { StatusCodes } from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
@@ -13,9 +12,6 @@ import { IUser } from '../user/user.interface'
 import { ITour } from '../tour/tour.interface'
 import { sendMail } from '../../utils/sendEmail'
 import { uploadBufferToCloudinary } from '../../configs/cloudinary.config'
-import catchAsync from '../../utils/catchAsync'
-import { NextFunction, Request, Response } from 'express'
-import sendResponse from '../../utils/sendResponse'
 
 const initPaymentIntoDB = async (bookingId: string) => {
 	const payment = await PaymentModel.findOne({ booking: bookingId })
