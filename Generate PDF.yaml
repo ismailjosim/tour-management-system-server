@@ -1,0 +1,6 @@
+# When User make payment we will send a invoice pdf into his email:
+
+## packages: pdfkit
+# link: https://www.npmjs.com/package/pdfkit
+
+installation: npm i pdfkit npm install --save @types/pdfkit

@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express'
 import catchAsync from '../../utils/catchAsync'
 import { PaymentService } from './payment.service'
+import httpStatus from 'http-status-codes'
 import { environmentVariables } from '../../configs/env'
 import sendResponse from '../../utils/sendResponse'
 
@@ -59,11 +60,24 @@ const cancelPayment = catchAsync(
 	},
 )
 
-// Add other controller methods here (e.g., get, update, delete)
+const getInvoiceDownloadURL = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const { paymentId } = req.params
+		const result = await PaymentService.getInvoiceDownloadURLFromDB(paymentId)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'Invoice Download URL Retrieved successfully',
+			data: result?.invoiceUrl,
+		})
+	},
+)
 
 export const PaymentController = {
 	initPayment,
 	successPayment,
 	failPayment,
 	cancelPayment,
+	getInvoiceDownloadURL,
 }

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Booking Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            width: 100% !important;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            padding: 0;
+            /* Reset default padding */
+        }
+
+        /* Main Container */
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header */
+        .header {
+            background-color: #2c3e50;
+            /* Dark blue */
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .header p {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        /* Invoice Details Section */
+        .invoice-details {
+            padding: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .invoice-details .col {
+            width: 48%;
+            /* Approx half width */
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .invoice-details .col p {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.5;
+        }
+
+        .invoice-details .col strong {
+            color: #333333;
+            font-weight: 600;
+        }
+
+        /* Booking Summary Section */
+        .booking-summary {
+            padding: 30px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .booking-summary h2 {
+            font-size: 22px;
+            color: #333333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .booking-summary table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .booking-summary th,
+        .booking-summary td {
+            text-align: left;
+            padding: 12px 0;
+            font-size: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .booking-summary th {
+            color: #777777;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        .booking-summary td {
+            color: #333333;
+            font-weight: 400;
+        }
+
+        .booking-summary tr:last-child td {
+            border-bottom: none;
+        }
+
+        .booking-summary .total-row td {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 16px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .booking-summary .total-row .amount {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Call to Action Button */
+        .button-section {
+            text-align: center;
+            padding: 20px 30px;
+            background-color: #f9f9f9;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            /* Bright blue */
+            color: #ffffff;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #ecf0f1;
+            /* Light grey */
+            color: #777777;
+            padding: 30px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.6;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Responsive Adjustments */
+        @media only screen and (max-width: 480px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 0;
+            }
+
+            .header,
+            .invoice-details,
+            .booking-summary,
+            .button-section,
+            .footer {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .invoice-details .col {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .booking-summary th,
+            .booking-summary td {
+                font-size: 14px;
+            }
+
+            .booking-summary .total-row .amount {
+                font-size: 18px;
+            }
+
+            .button {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>Invoice #<%= transactionId %>
+            </h1>
+            <p>Thank you for your booking with Traveler!</p>
+        </div>
+
+        <!-- Invoice Details Section -->
+        <div class="invoice-details">
+            <div class="col">
+                <p><strong>Invoice Date:</strong>
+                    <%= bookingDate %>
+                </p>
+                <p><strong>Due Date:</strong>
+                    <%= bookingDate %>
+                </p>
+                <p><strong>Booking ID:</strong>
+                    <%= transactionId %>
+                </p>
+            </div>
+            <div class="col">
+                <p><strong>Billed To:</strong></p>
+                <p>
+                    <%= userName %>
+                </p>
+                <p>
+                    <%= userEmail %>
+                </p>
+
+                <p>123 Main Street, Anytown, USA</p> <!-- Placeholder, as address is not in templateData -->
+            </div>
+        </div>
+
+        <!-- Booking Summary Section -->
+        <div class="booking-summary">
+            <h2>Booking Details</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <%= tourTitle %>
+                        </td>
+                        <td>1</td>
+                        <td>--.--</td> <!-- Placeholder, as individual price is not in templateData -->
+                        <td>--.--</td> <!-- Placeholder, as individual total is not in templateData -->
+                    </tr>
+                    <!-- You can add more rows here if there are multiple items in a booking -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Subtotal:</td>
+                        <td>--.--</td> <!-- Placeholder, calculate this based on items -->
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Service Fee (5%):</td>
+                        <td>--.--</td> <!-- Placeholder, calculate this -->
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Taxes (10%):</td>
+                        <td>--.--</td> <!-- Placeholder, calculate this -->
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right;">Total Amount Due:</td>
+                        <td class="amount">
+                            <%= totalAmount %>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+            <p style="font-size: 14px; color: #555555; margin-top: 20px;">
+                <strong>Payment Status:</strong> Paid in Full
+            </p>
+
+        </div>
+
+        <!-- Call to Action Button Section -->
+        <div class="button-section">
+            <a href="https://travelvistabd.web.app/my-bookings/<%= transactionId %>" class="button">View Your Booking
+                Details</a>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer">
+            <p>If you have any questions regarding this invoice, please contact us at:</p>
+            <p>Email: <a href="mailto:support@traveler.com">support@traveler.com</a> | Phone: +1 (555) 123-4567</p>
+            <p>&copy; 2025 Traveler. All rights reserved.</p>
+            <p><a href="https://traveler.com">Visit Our Website</a></p>
+        </div>
+    </div>
+</body>
+
+</html>
