@@ -18,18 +18,17 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 			fail_url: `${environmentVariables.SSL.SSL_FAIL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=fail`,
 			cancel_url: `${environmentVariables.SSL.SSL_CANCEL_BACKEND_URL}?transactionId=${payload.transactionId}&amount=${payload.amount}&status=cancel`,
 			ipn_url: environmentVariables.SSL.SSL_IPN_URL,
-			shipping_method: 'N/A', // * these are hard coded value
-			shipping_name: 'Appointment', // * these are hard coded value
-			product_category: 'Service', // * these are hard coded value
-			product_profile: 'general', // * these are hard coded value
-
+			shipping_method: 'N/A',
+			product_name: 'Tour',
+			product_category: 'Service',
+			product_profile: 'general',
 			cus_name: payload.name,
 			cus_email: payload.email,
 			cus_add1: payload.address,
 			cus_add2: 'N/A',
 			cus_city: 'Dhaka',
 			cus_state: 'Dhaka',
-			cus_postcode: '8340',
+			cus_postcode: '1000',
 			cus_country: 'Bangladesh',
 			cus_phone: payload.phoneNumber,
 			cus_fax: '01711111111',
@@ -38,8 +37,8 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 			ship_add2: 'N/A',
 			ship_city: 'N/A',
 			ship_state: 'N/A',
-			ship_postcode: '8340',
-			ship_country: 'Bangladesh',
+			ship_postcode: 1000,
+			ship_country: 'N/A',
 		}
 		const res = await axios({
 			method: 'POST',
@@ -61,7 +60,7 @@ const validatePayment = async (payload: any) => {
 	try {
 		const response = await axios({
 			method: 'GET',
-			url: `${environmentVariables.SSL.SSL_VALIDATION_API}?val_id=${payload.val_id}&store_id=${environmentVariables.SSL.SSL_STORE_ID}&store_pass=${environmentVariables.SSL.SSL_STORE_PASS}`,
+			url: `${environmentVariables.SSL.SSL_VALIDATION_API}?val_id=${payload.val_id}&store_id=${environmentVariables.SSL.SSL_STORE_ID}&store_passwd=${environmentVariables.SSL.SSL_STORE_PASS}`,
 		})
 
 		console.log('SSLCommerz Validate API Response ', response.data)
