@@ -63,19 +63,26 @@ const updateUserIntoDB = async (
 	payload: Partial<IUser>,
 	decodedToken: JwtPayload,
 ) => {
+	//* if user role is not admin and supper. he can't updated other's user info
+	if (decodedToken.role !== Role.USER || decodedToken.role !== Role.GUIDE) {
+		if (userId !== decodedToken.userId) {
+			throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorized')
+		}
+	}
+
 	// if user is not found
 	const isUserExist = await UserModel.findById(userId)
 	if (!isUserExist) {
 		throw new AppError(httpStatus.NOT_FOUND, 'This User is not found')
 	}
 
-	/*
-	 * email can't be updated
-	 * name, phone, password can be updated by the user.role === 'USER'
-	 * if password update => re-hashing the password
-	 * role, isDeleted... => only admin and super_admin can update it.
-	 * Prevent admin to promote => super_admin. only super_admin can promote super_admin
-	 */
+	// if super admin wants to update user Info
+	if (
+		decodedToken.role !== Role.ADMIN &&
+		isUserExist.role === Role.SUPER_ADMIN
+	) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorized')
+	}
 
 	// * update user role
 	if (payload.role) {
@@ -86,12 +93,12 @@ const updateUserIntoDB = async (
 			)
 		}
 
-		if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-			throw new AppError(
-				httpStatus.FORBIDDEN,
-				'You are not authorized to this action FROM SECOND IF',
-			)
-		}
+		// if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
+		// 	throw new AppError(
+		// 		httpStatus.FORBIDDEN,
+		// 		'You are not authorized to this action FROM SECOND IF',
+		// 	)
+		// }
 	}
 
 	if (payload.isActive || payload.isDeleted || payload.isVerified) {
@@ -103,10 +110,6 @@ const updateUserIntoDB = async (
 		}
 	}
 
-	// update password
-	if (payload.password) {
-		payload.password = await passwordHashing(payload.password)
-	}
 	const newUpdatedUser = await UserModel.findByIdAndUpdate(userId, payload, {
 		new: true,
 		runValidators: true,
@@ -121,3 +124,10 @@ export const UserServices = {
 	updateUserIntoDB,
 	getMeFromDB,
 }
+/*
+ * email can't be updated
+ * name, phone, password can be updated by the user.role === 'USER'
+ * if password update => re-hashing the password
+ * role, isDeleted... => only admin and super_admin can update it.
+ * Prevent admin to promote => super_admin. only super_admin can promote super_admin
+ */
