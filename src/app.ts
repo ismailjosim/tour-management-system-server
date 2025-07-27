@@ -14,7 +14,7 @@ const app: Application = express()
 // parsers
 app.use(
 	expressSession({
-		secret: 'your-secrent',
+		secret: environmentVariables.EXPRESS_SESSION_SECRET,
 		resave: false,
 		saveUninitialized: false,
 	}),
@@ -23,6 +23,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(cookieParser())
 app.use(express.json())
+app.set('trust proxy', 1)
 app.use(express.urlencoded({ extended: true }))
 app.use(
 	cors({
