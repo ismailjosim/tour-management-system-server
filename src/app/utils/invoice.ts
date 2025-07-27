@@ -10,14 +10,16 @@ export interface IInvoiceData {
 	bookingDate: Date
 	userName: string
 	userEmail: string
-	userPhone: string
-	userAddress: string
+	userPhone?: string
+	userAddress?: string
 	tourTitle: string
 	guestCount: number
 	totalAmount: number
 }
 
-export const generatePDF = async (data: IInvoiceData) => {
+export const generatePDF = async (
+	data: IInvoiceData,
+): Promise<Buffer<ArrayBufferLike>> => {
 	try {
 		return new Promise((resolve, reject) => {
 			const doc = new PDFDocument({ size: 'A4', margin: 50 })
@@ -48,8 +50,8 @@ export const generatePDF = async (data: IInvoiceData) => {
 			doc.fontSize(12).text('Customer Details:', { underline: true })
 			doc.text(`Name: ${data.userName}`)
 			doc.text(`Email: ${data.userEmail}`)
-			doc.text(`Phone: ${data.userPhone}`)
-			doc.text(`Address: ${data.userAddress}`)
+			doc.text(`Phone: ${data.userPhone || '+0880170000000'}`)
+			doc.text(`Address: ${data.userAddress || 'Dhaka, Bangladesh'}`)
 			doc.moveDown(2)
 
 			// === TOUR DETAILS TABLE ===
