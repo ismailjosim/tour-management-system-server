@@ -4,6 +4,7 @@ import connectDB from './app/configs/db'
 import { Server } from 'http'
 import { environmentVariables } from './app/configs/env'
 import seedSuperAdmin from './app/utils/seedSuperAdmin'
+import { connectRedis } from './app/configs/redis.config'
 
 let server: Server
 
@@ -49,8 +50,8 @@ async function startServer() {
 	}
 }
 ;(async () => {
+	await connectRedis()
 	await startServer()
-	// Automatically create a super Admin if not exist
 	await seedSuperAdmin()
 })()
 
