@@ -28,7 +28,10 @@ const createUserIntoDB = async (payload: Partial<IUser>) => {
 		auths: [authProvider],
 		...rest,
 	})
-	return user
+	const userWithoutPassword = user.toObject()
+	delete userWithoutPassword.password
+
+	return userWithoutPassword
 }
 
 const getAllUsersFromDB = async (query: Record<string, string>) => {

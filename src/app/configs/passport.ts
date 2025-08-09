@@ -29,7 +29,10 @@ passport.use(
 				}
 
 				if (!isUserExist.isVerified) {
-					return done('Your are not verified')
+					return done(null, false, {
+						statusCode: 401,
+						message: 'You are not verified',
+					} as any)
 				}
 
 				if (

@@ -1,0 +1,1477 @@
+{
+	"info": {
+		"_postman_id": "99da5441-ed57-4749-bc09-dcaab98d903d",
+		"name": "Traveler",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24253631"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"password\": \"12345678Aa@\",\r\n    \"email\": \"utpal@example.com\",\r\n    \"phone\": \"01777889900\",\r\n    \"picture\": \"https://example.com/images/utpal.jpg\",\r\n    \"address\": \"Badda, Dhaka\",\r\n    \"name\": \"Utpal Das\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/user/register",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"user",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET All Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzY1MTEzMCwiZXhwIjoxNzUzNzM3NTMwfQ.e0PiXptvhZO4PcWDlyB7CmnqHTsT27GNKFJzsBdOlZ4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Md. Jasim\",\r\n    \"email\": \"mdjasim.ph@gmail.com\",\r\n    \"phone\": \"+8801711000000\",\r\n    \"picture\": \"https://randomuser.me/api/portraits/men/75.jpg\",\r\n    \"address\": \"123, Bashundhara R/A, Dhaka, Bangladesh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/user",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Single User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzY1MTEzMCwiZXhwIjoxNzUzNzM3NTMwfQ.e0PiXptvhZO4PcWDlyB7CmnqHTsT27GNKFJzsBdOlZ4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Md. Jasim\",\r\n    \"email\": \"mdjasim.ph@gmail.com\",\r\n    \"phone\": \"+8801711000000\",\r\n    \"picture\": \"https://randomuser.me/api/portraits/men/75.jpg\",\r\n    \"address\": \"123, Bashundhara R/A, Dhaka, Bangladesh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/user/688696aa0c30cfd1303c3de4",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"user",
+								"688696aa0c30cfd1303c3de4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get ME",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzY1MTEzMCwiZXhwIjoxNzUzNzM3NTMwfQ.e0PiXptvhZO4PcWDlyB7CmnqHTsT27GNKFJzsBdOlZ4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Md. Jasim\",\r\n    \"email\": \"mdjasim.ph@gmail.com\",\r\n    \"phone\": \"+8801711000000\",\r\n    \"picture\": \"https://randomuser.me/api/portraits/men/75.jpg\",\r\n    \"address\": \"123, Bashundhara R/A, Dhaka, Bangladesh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/user/me",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"user",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Info",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzY1MTEzMCwiZXhwIjoxNzUzNzM3NTMwfQ.e0PiXptvhZO4PcWDlyB7CmnqHTsT27GNKFJzsBdOlZ4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role\": \"ADMIN\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/user/6886967d6ec1f241ee05c875",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"user",
+								"6886967d6ec1f241ee05c875"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "User Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ismailjosim99@gmail.com\",\r\n    \"password\": \"Ismail56746@\"\r\n    // \"password\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/auth/login",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate New Access Token using Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODczOGNlZGFiMzg0Nzc0Y2UwNWFlZjkiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjUwMDg1MiwiZXhwIjoxNzU1MDkyODUyfQ.GGlOtQr24FC1W9-n2fx2Sc4eYOQwFJhzJk0idf1P8SY",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/refresh-token",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODczOGNlZGFiMzg0Nzc0Y2UwNWFlZjkiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjUwMDg1MiwiZXhwIjoxNzU1MDkyODUyfQ.GGlOtQr24FC1W9-n2fx2Sc4eYOQwFJhzJk0idf1P8SY",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/logout",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc1ZWVhYjFjOGQzZDM4NTUyNzVjOTAiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjU4MDcyMiwiZXhwIjoxNzUyNjY3MTIyfQ.999w7Xt2jAZchh8nOjNtrVACWOEEBSUiiEJTnOf1rxo",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"oldPassword\": \"12345678\",\n    \"newPassword\": \"Ismail56746@\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/reset-password",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc1ZWVhYjFjOGQzZDM4NTUyNzVjOTAiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjU4MDcyMiwiZXhwIjoxNzUyNjY3MTIyfQ.999w7Xt2jAZchh8nOjNtrVACWOEEBSUiiEJTnOf1rxo",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"check@gmail.com\"\n}           ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/forgot-password",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODgzNGQ2MzE1NjdmMDdiMTc5NzQ3NjIiLCJlbWFpbCI6Im1kamFzaW0ucGhAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM1MzEwNzgsImV4cCI6MTc1MzUzMTY3OH0.uN5geRRNxWDVjG2v-4KBd93CcayHCUaMZ8rFeRUudaA",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"68834d631567f07b17974762\",\n    \"newPassword\": \"124567890A@\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/reset-password",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Passoword For Google Logged In user",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc1ZWVhYjFjOGQzZDM4NTUyNzVjOTAiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjU4MDcyMiwiZXhwIjoxNzUyNjY3MTIyfQ.999w7Xt2jAZchh8nOjNtrVACWOEEBSUiiEJTnOf1rxo",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"oldPassword\": \"12345678\",\n    \"newPassword\": \"Ismail56746@\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/auth/reset-password",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tour",
+			"item": [
+				{
+					"name": "Delete Single Tour",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3NTM2N2JjZmJjNGNiYjUwNDIwMTciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjgxODgxNCwiZXhwIjoxNzUyOTA1MjE0fQ.0tuegm1oAaPnEum4gEtpFNGPRXYsvZ3gIabkTk1oe_A",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Family Trip\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour/687a2ac79971cb3019da3b77",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour",
+								"687a2ac79971cb3019da3b77"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tours",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"<style type=\"text/css\">\r",
+									"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r",
+									"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r",
+									"    .tftable tr {background-color:#ffffff;}\r",
+									"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r",
+									"    .tftable tr:hover {background-color:#e0ffff;}\r",
+									"</style>\r",
+									"\r",
+									"<table class=\"tftable\" border=\"1\">\r",
+									"    <tr>\r",
+									"        <th>ID</th>\r",
+									"        <th>Title</th>\r",
+									"        <th>Description</th>\r",
+									"        <th>Location</th>\r",
+									"        <th>Cost From</th>\r",
+									"        <th>Start Date</th>\r",
+									"        <th>End Date</th>\r",
+									"        <th>Max Guest</th>\r",
+									"        <th>Min Age</th>\r",
+									"        <th>Tour Type</th>\r",
+									"    </tr>\r",
+									"    \r",
+									"    {{#each response.data}}\r",
+									"        <tr id=row_{{@key}}>\r",
+									"            <td>{{_id}}</td>\r",
+									"            <td>{{title}}</td>\r",
+									"            <td>{{description}}</td>\r",
+									"            <td>{{location}}</td>\r",
+									"            <td>{{costFrom}}</td>\r",
+									"            <td>{{startDate}}</td>\r",
+									"            <td>{{endDate}}</td>\r",
+									"            <td>{{maxGuest}}</td>\r",
+									"            <td>{{minAge}}</td>\r",
+									"            <td>{{tourType}}</td>\r",
+									"        </tr>\r",
+									"    {{/each}}\r",
+									"</table>\r",
+									"`;\r",
+									"\r",
+									"function constructVisualizerPayload() {\r",
+									"    return {response: pm.response.json()};\r",
+									"}\r",
+									"\r",
+									"pm.visualizer.set(template, constructVisualizerPayload());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTZhYTBjMzBjZmQxMzAzYzNkZTQiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM4ODk2NjAsImV4cCI6MTc1Mzk3NjA2MH0.Sol9lT83OdVM1mGabkp0YEP0lF-34L1YEMoU_ahtK1o",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "title",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "location",
+									"value": "India",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Tour using Slug",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"<style type=\"text/css\">\r",
+									"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r",
+									"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r",
+									"    .tftable tr {background-color:#ffffff;}\r",
+									"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r",
+									"    .tftable tr:hover {background-color:#e0ffff;}\r",
+									"</style>\r",
+									"\r",
+									"<table class=\"tftable\" border=\"1\">\r",
+									"    <tr>\r",
+									"        <th>ID</th>\r",
+									"        <th>Title</th>\r",
+									"        <th>Description</th>\r",
+									"        <th>Location</th>\r",
+									"        <th>Cost From</th>\r",
+									"        <th>Start Date</th>\r",
+									"        <th>End Date</th>\r",
+									"        <th>Max Guest</th>\r",
+									"        <th>Min Age</th>\r",
+									"        <th>Tour Type</th>\r",
+									"    </tr>\r",
+									"    \r",
+									"    {{#each response.data}}\r",
+									"        <tr id=row_{{@key}}>\r",
+									"            <td>{{_id}}</td>\r",
+									"            <td>{{title}}</td>\r",
+									"            <td>{{description}}</td>\r",
+									"            <td>{{location}}</td>\r",
+									"            <td>{{costFrom}}</td>\r",
+									"            <td>{{startDate}}</td>\r",
+									"            <td>{{endDate}}</td>\r",
+									"            <td>{{maxGuest}}</td>\r",
+									"            <td>{{minAge}}</td>\r",
+									"            <td>{{tourType}}</td>\r",
+									"        </tr>\r",
+									"    {{/each}}\r",
+									"</table>\r",
+									"`;\r",
+									"\r",
+									"function constructVisualizerPayload() {\r",
+									"    return {response: pm.response.json()};\r",
+									"}\r",
+									"\r",
+									"pm.visualizer.set(template, constructVisualizerPayload());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3N2Y1NjM0ZGVkMWZlOWNhZTU0NDciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjY2MTg2OSwiZXhwIjoxNzUyNzQ4MjY5fQ.fZ-NLPNV26ujUEvWpzAHmxqAlbyCgg6oK3xQz-Uh6ao",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour/sri-mongol",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour",
+								"sri-mongol"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "title",
+									"disabled": true
+								},
+								{
+									"key": "location",
+									"value": "India",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tour",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3N2Y1NjM0ZGVkMWZlOWNhZTU0NDciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjY2MTg2OSwiZXhwIjoxNzUyNzQ4MjY5fQ.fZ-NLPNV26ujUEvWpzAHmxqAlbyCgg6oK3xQz-Uh6ao",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"value": "{\n    \"title\": \"Winter Sports Adventure in Rangpur\",\n    \"description\": \"Experience thrilling winter sports in the beautiful landscapes of Rangpur.\",\n    \"location\": \"Rangpur\",\n    \"costFrom\": 1200,\n    \"startDate\": \"2025-12-01T00:00:00.000Z\",\n    \"endDate\": \"2025-12-07T00:00:00.000Z\",\n    \"tourType\": \"68878218b8918af7ab0080f5\",\n    \"division\": \"688787ec1a83e02a92c02750\",\n    \"included\": [\n      \"Accommodation\",\n      \"Skiing equipment\",\n      \"Meals\"\n    ],\n    \"excluded\": [\n      \"Flights\",\n      \"Personal expenses\"\n    ],\n    \"amenities\": [\n      \"Heated lodges\",\n      \"Ski lessons\"\n    ],\n    \"tourPlan\": [\n      \"Day 1: Arrival and check-in\",\n      \"Day 2-5: Skiing and snowboarding\",\n      \"Day 6: Local sightseeing\",\n      \"Day 7: Departure\"\n    ],\n    \"maxGuest\": 15,\n    \"minAge\": 12,\n    \"departureLocation\": \"Dhaka\",\n    \"arrivalLocation\": \"Rangpur\"\n  }",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [
+										"/home/ismail/Desktop/Assets/dhaka.jpg",
+										"/home/ismail/Desktop/Assets/Khulna.jpg",
+										"/home/ismail/Desktop/Assets/Rajshahi.jpg",
+										"/home/ismail/Desktop/Assets/barisal-8208328_1280.jpg",
+										"/home/ismail/Desktop/Assets/rongpur.webp",
+										"/home/ismail/Desktop/Assets/Mymensingh.jpg"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/tour/create",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"tour",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tour",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzMzY4NzMzLCJleHAiOjE3NTM0NTUxMzN9.YjHm2ckcaMOW3IEWWG0nftj0AsmKGdlcJB17myaxkWY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"value": "{}",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [
+										"/C:/Users/ISMAIL/Downloads/data-03.png",
+										"/C:/Users/ISMAIL/Downloads/data-04.jpg"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour/68824b56e9348934878777d0",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour",
+								"68824b56e9348934878777d0"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tour Type",
+			"item": [
+				{
+					"name": "Get All Tour Type",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3N2Y1NjM0ZGVkMWZlOWNhZTU0NDciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjY2MTg2OSwiZXhwIjoxNzUyNzQ4MjY5fQ.fZ-NLPNV26ujUEvWpzAHmxqAlbyCgg6oK3xQz-Uh6ao",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"solo Trips\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/tour/tour-types",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"tour",
+								"tour-types"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Single Tour Type",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3NTM2N2JjZmJjNGNiYjUwNDIwMTciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjgxODgxNCwiZXhwIjoxNzUyOTA1MjE0fQ.0tuegm1oAaPnEum4gEtpFNGPRXYsvZ3gIabkTk1oe_A",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Family Trip\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour/tour-types/6879ed5df6656416877d0185",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour",
+								"tour-types",
+								"6879ed5df6656416877d0185"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tour Type",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzcxMDg1NSwiZXhwIjoxNzUzNzk3MjU1fQ.M7uHqVb5jXbuIO4oJVulUKNBJaRaKVXeUiaYqtaMNhc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/tour/create-tour-types",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"tour",
+								"create-tour-types"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tour Types",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3NTM2N2JjZmJjNGNiYjUwNDIwMTciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjgxODgxNCwiZXhwIjoxNzUyOTA1MjE0fQ.0tuegm1oAaPnEum4gEtpFNGPRXYsvZ3gIabkTk1oe_A",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Family Trip\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/tour/tour-types/6879e89f330ecd53c0c4e35a",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"tour",
+								"tour-types",
+								"6879e89f330ecd53c0c4e35a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Division",
+			"item": [
+				{
+					"name": "Create Division",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzcxMDg1NSwiZXhwIjoxNzUzNzk3MjU1fQ.M7uHqVb5jXbuIO4oJVulUKNBJaRaKVXeUiaYqtaMNhc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"value": "{ \"name\": \"Dhaka\", \"description\": \"Capital division of Bangladesh, known for its vibrant city life and historical landmarks.\" }",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/home/ismail/Desktop/Assets/dhaka.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/division/create",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"division",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Division",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzMjExNjA5LCJleHAiOjE3NTMyOTgwMDl9.1yG1RjBhcycglFPIM4kQPtXSuwGbxOtF0vnI7tqVo18",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/ISMAIL/Downloads/ChatGPT Image May 21, 2025, 11_03_50 AM.png"
+								},
+								{
+									"key": "data",
+									"value": "{\n    \"description\": \"it's covert all the tourist spots inside dhaka Division\"\n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/division/68804c6b873c80e495757005",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"division",
+								"68804c6b873c80e495757005"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Single Division",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzcxMDg1NSwiZXhwIjoxNzUzNzk3MjU1fQ.M7uHqVb5jXbuIO4oJVulUKNBJaRaKVXeUiaYqtaMNhc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Family Trip\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/division/688698ef930f0e85a707bf6e",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"division",
+								"688698ef930f0e85a707bf6e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Division",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTY3ZDZlYzFmMjQxZWUwNWM4NzUiLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MzcxMDg1NSwiZXhwIjoxNzUzNzk3MjU1fQ.M7uHqVb5jXbuIO4oJVulUKNBJaRaKVXeUiaYqtaMNhc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LIVE-URL}}/division",
+							"host": [
+								"{{TRAVELER-LIVE-URL}}"
+							],
+							"path": [
+								"division"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Division",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3N2Y1NjM0ZGVkMWZlOWNhZTU0NDciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjY2MTg2OSwiZXhwIjoxNzUyNzQ4MjY5fQ.fZ-NLPNV26ujUEvWpzAHmxqAlbyCgg6oK3xQz-Uh6ao",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"solo Trips\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/division/dhaka-division",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"division",
+								"dhaka-division"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Booking",
+			"item": [
+				{
+					"name": "Get All Bookings",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODc3N2Y1NjM0ZGVkMWZlOWNhZTU0NDciLCJlbWFpbCI6InN1cGVyQHN1cGVyLmNvbSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc1MjY2MTg2OSwiZXhwIjoxNzUyNzQ4MjY5fQ.fZ-NLPNV26ujUEvWpzAHmxqAlbyCgg6oK3xQz-Uh6ao",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"solo Trips\"\r\n}"
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/booking",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2OTZhYTBjMzBjZmQxMzAzYzNkZTQiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM4ODk2NjAsImV4cCI6MTc1Mzk3NjA2MH0.Sol9lT83OdVM1mGabkp0YEP0lF-34L1YEMoU_ahtK1o",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tour\": \"68878f011f9e51d8bce30a4a\",\r\n    \"guestCount\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/booking",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"booking"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payment",
+			"item": [
+				{
+					"name": "Payment for A Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzNjM1NDg0LCJleHAiOjE3NTM3MjE4ODR9._YGXa3EptX46eGGZ4j0YaDmfhcNVND_C2KRW1EK_hyY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tour\": \"687cc5a68efe27f715ed4a50\",\r\n    \"guestCount\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/payment/init-payment/688662c42b91dfaa74914159",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"payment",
+								"init-payment",
+								"688662c42b91dfaa74914159"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Payment Invoice",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODg2MDUwMmFhY2ZlMTAxMDYzZTFmZGEiLCJlbWFpbCI6ImlzbWFpbGpvc2ltLndvcmtAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM2MTM2NzUsImV4cCI6MTc1MzcwMDA3NX0.CphLwfg05CxR2QM5SXEueYltGUtmn2JfWAHHA4wwaFc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tour\": \"687cc5a68efe27f715ed4a50\",\r\n    \"guestCount\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/payment/invoice/68863757f984441d4d7660e8",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"payment",
+								"invoice",
+								"68863757f984441d4d7660e8"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OTP",
+			"item": [
+				{
+					"name": "Send OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"ismail\",\r\n    \"email\": \"ismailjosim.work@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/otp/send",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"otp",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ismailjosim.work@gmail.com\",\r\n    \"otp\": \"100664\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/otp/verify",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"otp",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stats",
+			"item": [
+				{
+					"name": "User Stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzNjM1NDg0LCJleHAiOjE3NTM3MjE4ODR9._YGXa3EptX46eGGZ4j0YaDmfhcNVND_C2KRW1EK_hyY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"ismail\",\r\n    \"email\": \"ismailjosim.work@gmail.com\"\r\n}/*  */",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/stats/user",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"stats",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tour Stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzNjM1NDg0LCJleHAiOjE3NTM3MjE4ODR9._YGXa3EptX46eGGZ4j0YaDmfhcNVND_C2KRW1EK_hyY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"ismail\",\r\n    \"email\": \"ismailjosim.work@gmail.com\"\r\n}/*  */",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/stats/tour",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"stats",
+								"tour"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Booking Stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzNjM1NDg0LCJleHAiOjE3NTM3MjE4ODR9._YGXa3EptX46eGGZ4j0YaDmfhcNVND_C2KRW1EK_hyY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"ismail\",\r\n    \"email\": \"ismailjosim.work@gmail.com\"\r\n}/*  */",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/stats/booking",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"stats",
+								"booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payment Stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdjYzRhYjhlZmUyN2Y3MTVlZDRhMzgiLCJlbWFpbCI6ImlzbWFpbGpvc2ltOTlAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzNjM1NDg0LCJleHAiOjE3NTM3MjE4ODR9._YGXa3EptX46eGGZ4j0YaDmfhcNVND_C2KRW1EK_hyY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"ismail\",\r\n    \"email\": \"ismailjosim.work@gmail.com\"\r\n}/*  */",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{TRAVELER-LOCAL-URL}}/stats/payment",
+							"host": [
+								"{{TRAVELER-LOCAL-URL}}"
+							],
+							"path": [
+								"stats",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "default",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000"
+				}
+			},
+			"response": []
+		}
+	]
+}
