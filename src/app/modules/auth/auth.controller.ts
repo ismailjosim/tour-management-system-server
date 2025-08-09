@@ -48,7 +48,7 @@ const credentialsLogin = catchAsync(
 			}
 
 			if (!user) {
-				return next(new AppError(httpStatus.BAD_REQUEST, info?.message))
+				return next(new AppError(httpStatus.UNAUTHORIZED, info?.message))
 			}
 
 			// generate access & refresh Token
