@@ -57,7 +57,9 @@ export const deleteImageFromCloudinary = async (url: string) => {
 		if (match && match[1]) {
 			const publicId = match[1]
 			await cloudinary.uploader.destroy(publicId)
-			console.log(`✅ File deleted: ${publicId}`)
+			if (environmentVariables.NODE_ENV === 'development') {
+				console.log(`✅ File deleted: ${publicId}`)
+			}
 		}
 	} catch (error: any) {
 		if (environmentVariables.NODE_ENV === 'development') {

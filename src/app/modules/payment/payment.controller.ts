@@ -76,7 +76,6 @@ const getInvoiceDownloadURL = catchAsync(
 )
 const validatePayment = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		console.log('SSLCommerz IPN URL Body', req.body)
 		await SSLService.validatePayment(req.body)
 
 		sendResponse(res, {
