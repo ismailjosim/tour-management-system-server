@@ -161,7 +161,7 @@ const forgotPasswordIntoDB = async (email: string) => {
 		},
 	})
 
-	// http://localhost:5173/reset-password?id=68834d631567f07b17974762&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODgzNGQ2MzE1NjdmMDdiMTc5NzQ3NjIiLCJlbWFpbCI6Im1kamFzaW0ucGhAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM1Mjk1MTYsImV4cCI6MTc1MzUzMDExNn0.6EwtnsSGMutZTv6Ip787IXbeoVUoJOAeokSoRUNJp2I
+	// http://localhost:3000/reset-password?id=68834d631567f07b17974762&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODgzNGQ2MzE1NjdmMDdiMTc5NzQ3NjIiLCJlbWFpbCI6Im1kamFzaW0ucGhAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM1Mjk1MTYsImV4cCI6MTc1MzUzMDExNn0.6EwtnsSGMutZTv6Ip787IXbeoVUoJOAeokSoRUNJp2I
 }
 const resetPasswordIntoDB = async (
 	payload: Record<string, any>,

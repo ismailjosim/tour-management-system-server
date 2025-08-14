@@ -80,16 +80,16 @@ const loadEnvironmentVars = (): EnvConfig => {
 		'CLOUDINARY_CLOUD_NAME',
 		'CLOUDINARY_API_KEY',
 		'CLOUDINARY_API_SECRET',
-		'SMTP_HOST',
-		'SMTP_PORT',
-		'SMTP_USER',
-		'SMTP_PASS',
-		'SMTP_FROM',
 		'REDIS_USERNAME',
 		'REDIS_PASSWORD',
 		'REDIS_HOST',
 		'REDIS_PORT',
 		'SSL_IPN_URL',
+		'SMTP_HOST',
+		'SMTP_PORT',
+		'SMTP_USER',
+		'SMTP_PASS',
+		'SMTP_FROM',
 	]
 	requiredEnvironmentVars.forEach((key) => {
 		if (!process.env[key]) {
