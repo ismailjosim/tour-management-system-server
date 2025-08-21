@@ -72,7 +72,10 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 */
 
 const getAllTourFromDB = async (query: Record<string, string>) => {
-	const queryBuilder = new QueryBuilder(TourModel.find(), query)
+	const queryBuilder = new QueryBuilder(
+		TourModel.find().populate('tourType', 'name').populate('division', 'name'),
+		query,
+	)
 	const tours = queryBuilder
 		.search(tourSearchableFields)
 		.filter()
