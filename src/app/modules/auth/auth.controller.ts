@@ -112,17 +112,19 @@ const getNewAccessToken = catchAsync(
 const logout = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		// ❌ Clear access token cookie
+		const isProduction = environmentVariables.NODE_ENV === 'production'
+
 		res.clearCookie('accessToken', {
 			httpOnly: true,
-			secure: false, // ✅ Set to true in production (HTTPS)
-			sameSite: 'lax',
+			secure: isProduction, // ✅ Set to true in production (HTTPS)
+			sameSite: isProduction ? 'none' : 'lax',
 		})
 
 		// ❌ Clear refresh token cookie
 		res.clearCookie('refreshToken', {
 			httpOnly: true,
-			secure: false,
-			sameSite: 'lax',
+			secure: isProduction,
+			sameSite: isProduction ? 'none' : 'lax',
 		})
 
 		// ✅ Send logout confirmation
