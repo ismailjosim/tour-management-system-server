@@ -24,7 +24,9 @@ const createBooking = catchAsync(
 )
 const getAllBookings = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await BookingService.getAllBookingFromDB()
+		const result = await BookingService.getAllBookingFromDB(
+			req.query as Record<string, string>,
+		)
 
 		sendResponse(res, {
 			success: true,
@@ -36,7 +38,12 @@ const getAllBookings = catchAsync(
 )
 const getUserBookings = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await BookingService.getUserBookingFromDB()
+		const decodedToken = req.user as JwtPayload
+		const query = req.query as Record<string, string>
+		const result = await BookingService.getUserBookingFromDB(
+			decodedToken.userId,
+			query,
+		)
 
 		sendResponse(res, {
 			success: true,

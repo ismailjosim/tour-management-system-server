@@ -10,6 +10,7 @@ import { TourModel } from '../tour/tour.model'
 import { SSLService } from '../sslCommerz/sslCommerz.service'
 import { ISSlCommerz } from '../sslCommerz/sslCommerz.interface'
 import { getTransactionId } from '../../utils/getTransactionId'
+import { QueryBuilder } from '../../utils/QueryBuilder'
 
 const createBookingIntoDB = async (
 	payload: Partial<IBooking>,
@@ -109,12 +110,37 @@ const createBookingIntoDB = async (
 	}
 }
 
-const getAllBookingFromDB = async () => {
-	return null
+const getAllBookingFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(BookingModel.find(), query)
+	const bookings = queryBuilder.filter().sort().fields().paginate()
+	const [data, meta] = await Promise.all([
+		bookings.build(),
+		queryBuilder.getMeta(),
+	])
+	return {
+		data,
+		meta,
+	}
 }
 
-const getUserBookingFromDB = async () => {
-	return null
+const getUserBookingFromDB = async (
+	userId: string,
+	query: Record<string, string>,
+) => {
+	const queryBuilder = new QueryBuilder(
+		BookingModel.find({ user: userId }),
+		query,
+	)
+	const bookings = queryBuilder.filter().sort().fields().paginate()
+
+	const [data, meta] = await Promise.all([
+		bookings.build(),
+		queryBuilder.getMeta(),
+	])
+	return {
+		data,
+		meta,
+	}
 }
 const getSingleBookingFromDB = async () => {
 	return null
@@ -129,5 +155,4 @@ export const BookingService = {
 	getUserBookingFromDB,
 	getSingleBookingFromDB,
 	updateBookingStatusIntoDB,
-	// ...
 }
