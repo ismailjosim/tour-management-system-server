@@ -58,22 +58,12 @@ const getSingleUser = catchAsync(
 const updateUser = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const userId = req.params.id
-		const token = req.headers.authorization
-		// verify token: method-01
-		// const tokenVerify = verifyToken(
-		// 	token as string,
-		// 	environmentVariables.JWT_ACCESS_SECRET,
-		// ) as JwtPayload
-
-		// verify token: method-02
-		const tokenVerify = req.body
-
+		const decodedToken = req.user as JwtPayload
 		const payload = req.body
-
 		const result = await UserServices.updateUserIntoDB(
 			userId,
 			payload,
-			tokenVerify,
+			decodedToken,
 		)
 		sendResponse(res, {
 			success: true,
