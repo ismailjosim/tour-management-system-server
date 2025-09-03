@@ -66,49 +66,54 @@ const updateUserIntoDB = async (
 	payload: Partial<IUser>,
 	decodedToken: JwtPayload,
 ) => {
-	//* if user role is not admin and supper. he can't updated other's user info
-	if (decodedToken.role !== Role.USER || decodedToken.role !== Role.GUIDE) {
+	// Normal user/guide → only update his info
+	if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
 		if (userId !== decodedToken.userId) {
-			throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorized')
+			throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized')
+		}
+
+		// Only update specific field
+		const allowedFields = ['name', 'phone', 'profileImage', 'address']
+		const invalidFields = Object.keys(payload).filter(
+			(field) => !allowedFields.includes(field),
+		)
+		if (invalidFields.length > 0) {
+			throw new AppError(
+				httpStatus.FORBIDDEN,
+				'You are not authorized to update these fields',
+			)
 		}
 	}
 
-	// if user is not found
 	const isUserExist = await UserModel.findById(userId)
 	if (!isUserExist) {
 		throw new AppError(httpStatus.NOT_FOUND, 'This User is not found')
 	}
 
-	// if super admin wants to update user Info
+	// Super Admin protection
 	if (
 		decodedToken.role !== Role.ADMIN &&
 		isUserExist.role === Role.SUPER_ADMIN
 	) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorized')
+		throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized')
 	}
 
-	// * update user role
+	// role update only for Admin/Super Admin
 	if (payload.role) {
 		if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
 			throw new AppError(
 				httpStatus.FORBIDDEN,
-				'You are not authorized to this action',
+				'You are not authorized to update role',
 			)
 		}
-
-		// if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-		// 	throw new AppError(
-		// 		httpStatus.FORBIDDEN,
-		// 		'You are not authorized to this action FROM SECOND IF',
-		// 	)
-		// }
 	}
 
+	// sensitive flags update protection
 	if (payload.isActive || payload.isDeleted || payload.isVerified) {
 		if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
 			throw new AppError(
 				httpStatus.FORBIDDEN,
-				'You are not authorized to this action',
+				'You are not authorized to update system fields',
 			)
 		}
 	}
