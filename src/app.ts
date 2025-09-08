@@ -12,6 +12,10 @@ import { environmentVariables } from './app/configs/env'
 const app: Application = express()
 
 // parsers
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
+
 app.use(
 	expressSession({
 		secret: environmentVariables.EXPRESS_SESSION_SECRET,
@@ -21,10 +25,7 @@ app.use(
 )
 app.use(passport.initialize())
 app.use(passport.session())
-app.use(cookieParser())
-app.use(express.json())
 app.set('trust proxy', 1)
-app.use(express.urlencoded({ extended: true }))
 app.use(
 	cors({
 		origin: environmentVariables.FRONTEND_URL,
