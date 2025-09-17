@@ -36,7 +36,7 @@ const seedSuperAdmin = async () => {
 
 		const superAdmin = await UserModel.create(payload)
 		if (environmentVariables.NODE_ENV === 'development') {
-			console.log('Super Admin Created Successfully', superAdmin.name)
+			console.log('Super Admin Created Successfully. Name: ', superAdmin.name)
 		}
 	} catch (error) {
 		if (environmentVariables.NODE_ENV === 'development') {

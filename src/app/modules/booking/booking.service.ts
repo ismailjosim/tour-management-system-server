@@ -111,7 +111,13 @@ const createBookingIntoDB = async (
 }
 
 const getAllBookingFromDB = async (query: Record<string, string>) => {
-	const queryBuilder = new QueryBuilder(BookingModel.find(), query)
+	const queryBuilder = new QueryBuilder(
+		BookingModel.find()
+			.populate('user', 'name email -_id')
+			.populate('tour', 'costFrom title images location startDate endDate -_id')
+			.populate('payment'),
+		query,
+	)
 	const bookings = queryBuilder.filter().sort().fields().paginate()
 	const [data, meta] = await Promise.all([
 		bookings.build(),

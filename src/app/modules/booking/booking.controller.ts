@@ -32,7 +32,7 @@ const getAllBookings = catchAsync(
 			success: true,
 			statusCode: httpStatus.OK,
 			message: 'Bookings Retrieved successfully',
-			data: result,
+			data: { ...result },
 		})
 	},
 )
