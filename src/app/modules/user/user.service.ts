@@ -6,6 +6,7 @@ import passwordHashing from '../../utils/passwordHashing'
 import { JwtPayload } from 'jsonwebtoken'
 import { QueryBuilder } from '../../utils/QueryBuilder'
 import { userSearchableFields } from './user.constant'
+import { environmentVariables } from '../../configs/env'
 
 const createUserIntoDB = async (payload: Partial<IUser>) => {
 	const { email, password, ...rest } = payload
@@ -96,6 +97,18 @@ const updateUserIntoDB = async (
 		isUserExist.role === Role.SUPER_ADMIN
 	) {
 		throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized')
+	}
+
+	// 🚨 Prevent changing SUPER_ADMIN's role from env
+	if (
+		isUserExist.email === environmentVariables.SUPER_ADMIN_EMAIL &&
+		payload.role &&
+		payload.role !== Role.SUPER_ADMIN
+	) {
+		throw new AppError(
+			httpStatus.FORBIDDEN,
+			'The SUPER_ADMIN role cannot be changed',
+		)
 	}
 
 	// role update only for Admin/Super Admin
