@@ -30,7 +30,7 @@ const applyGuide = catchAsync(
 
 // Get current logged-in guide profile
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-	const userId = req.user?.id
+	const userId = req.params.id
 	const result = await GuideService.getMyProfileFromDB(userId)
 	sendResponse(res, {
 		success: true,
@@ -42,7 +42,7 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 
 // Update my profile
 const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
-	const userId = req.user?.id || req.body.user
+	const userId = req.params.id
 	const result = await GuideService.updateMyProfileInDB(userId, req.body)
 	sendResponse(res, {
 		success: true,
@@ -55,7 +55,7 @@ const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
 // Get my assigned tours
 
 const getMyTours = catchAsync(async (req: Request, res: Response) => {
-	const userId = req.user?.id || req.body.user
+	const userId = req.params.id
 	const result = await GuideService.getMyToursFromDB(userId)
 	sendResponse(res, {
 		success: true,
@@ -67,7 +67,7 @@ const getMyTours = catchAsync(async (req: Request, res: Response) => {
 
 // Get my stats
 const getMyStats = catchAsync(async (req: Request, res: Response) => {
-	const userId = req.user?.id || req.body.user
+	const userId = req.params.id
 	const result = await GuideService.getMyStatsFromDB(userId)
 	sendResponse(res, {
 		success: true,
