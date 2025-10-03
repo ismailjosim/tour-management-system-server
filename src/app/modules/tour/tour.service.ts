@@ -267,8 +267,3 @@ export const TourServices = {
 	updateTourTypeIntoDB,
 	deleteTourTypeFromDB,
 }
-
-/**
-
- *
- */
