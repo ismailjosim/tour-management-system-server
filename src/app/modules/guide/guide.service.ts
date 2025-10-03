@@ -1,11 +1,14 @@
 import httpStatus from 'http-status-codes'
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { deleteImageFromCloudinary } from '../../configs/cloudinary.config'
 import AppError from '../../errorHelpers/AppError'
 import { UserModel } from '../user/user.model'
 import { IGuide, IGuideStatus } from './guide.interface'
 import { GuideModel } from './guide.model'
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
+import { JwtPayload } from 'jsonwebtoken'
+import { Role } from '../user/user.interface'
+import { QueryBuilder } from '../../utils/QueryBuilder'
 
 // ========== USER / PUBLIC SERVICES ==========
 
@@ -43,6 +46,105 @@ const applyGuideIntoDB = async (payload: {
 	return newGuide
 }
 
+// ========== ADMIN SERVICES ==========
+// Approve or reject guide application
+const approveOrRejectGuideInDB = async (
+	guideId: string,
+	status: IGuideStatus.APPROVED | IGuideStatus.REJECTED,
+	decodedToken: JwtPayload,
+) => {
+	const session = await mongoose.startSession()
+	session.startTransaction()
+
+	try {
+		// *1️⃣ : check user is admin/super_admin
+		if (
+			decodedToken.role !== Role.ADMIN &&
+			decodedToken.role !== Role.SUPER_ADMIN
+		) {
+			throw new AppError(httpStatus.FORBIDDEN, 'Your are not authorized!')
+		}
+		// *2️⃣ : Find the  guide application
+		const guide = await GuideModel.findById(guideId).session(session)
+		if (!guide) {
+			throw new AppError(httpStatus.NOT_FOUND, 'Guide application not found')
+		}
+		// *3️⃣ : find user
+		const user = await UserModel.findById(guide.user).session(session)
+		if (!user) {
+			throw new AppError(httpStatus.NOT_FOUND, 'User not found')
+		}
+		// *4️⃣ : If approving, check if already a guide
+		if (status === IGuideStatus.APPROVED && user.role === Role.GUIDE) {
+			throw new AppError(httpStatus.BAD_REQUEST, 'User is already a guide')
+		}
+
+		// *5️⃣ : update user role in user collection
+		if (status === 'APPROVED') {
+			user.role = Role.GUIDE
+			await user.save({ session })
+		}
+
+		// * 6️⃣ : change status based on status (APPROVED / REJECTED)
+		guide.status =
+			status === 'APPROVED' ? IGuideStatus.APPROVED : IGuideStatus.REJECTED
+		await guide.save({ session })
+
+		// ✅ commit transaction
+		await session.commitTransaction()
+		session.endSession()
+
+		return guide
+	} catch (error) {
+		await session.abortTransaction()
+		session.endSession()
+		throw error
+	}
+}
+
+// Get all guides
+const getAllGuidesFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(
+		GuideModel.find()
+			.populate(
+				'user',
+				'name email role phone address isVerified isActive -_id',
+			)
+			.populate('division', 'name thumbnail description -_id'),
+		query,
+	)
+
+	const guides = queryBuilder.filter().sort().fields().paginate()
+	const [data, meta] = await Promise.all([
+		guides.build(),
+		queryBuilder.getMeta(),
+	])
+	return {
+		data,
+		meta,
+	}
+}
+
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // Get logged-in user's guide profile
 const getMyProfileFromDB = async (userId: string): Promise<IGuide | null> => {
 	return GuideModel.findOne({ user: userId }).populate('division')
@@ -61,6 +163,7 @@ const updateMyProfileInDB = async (
 // Get tours assigned to current guide
 // (Assuming you have a Tour model, here it's just a stub)
 const getMyToursFromDB = async (userId: string) => {
+	console.log(userId)
 	// Example: return TourModel.find({ guide: userId });
 	return []
 }
@@ -68,43 +171,16 @@ const getMyToursFromDB = async (userId: string) => {
 // Get statistics for the current guide
 const getMyStatsFromDB = async (userId: string) => {
 	// Example: count tours & bookings (stub for now)
+	console.log(userId)
 	return {
 		totalTours: 0,
 		totalBookings: 0,
 	}
 }
 
-// ========== ADMIN SERVICES ==========
-
-// Get all guides (with query filters like status, user, division)
-const getAllGuidesFromDB = async (filters: {
-	status?: IGuideStatus
-	user?: string
-	division?: string
-}): Promise<IGuide[]> => {
-	const query: Record<string, any> = {}
-	if (filters.status) query.status = filters.status
-	if (filters.user) query.user = filters.user
-	if (filters.division) query.division = filters.division
-
-	return GuideModel.find(query).populate('user division')
-}
-
 // Get single guide details
 const getSingleGuideFromDB = async (id: string): Promise<IGuide | null> => {
 	return GuideModel.findById(id).populate('user division')
-}
-
-// Approve or reject guide application
-const approveOrRejectGuideInDB = async (
-	guideId: string,
-	status: IGuideStatus,
-): Promise<IGuide | null> => {
-	return GuideModel.findByIdAndUpdate(
-		guideId,
-		{ status },
-		{ new: true },
-	).populate('user division')
 }
 
 // Admin update guide

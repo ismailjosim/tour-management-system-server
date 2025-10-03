@@ -7,6 +7,7 @@ import { GuideService } from './guide.service'
 import { IGuide, IGuideStatus } from './guide.interface'
 import { JwtPayload } from 'jsonwebtoken'
 import { Types } from 'mongoose'
+import AppError from '../../errorHelpers/AppError'
 
 /**
  * ========================
@@ -87,20 +88,45 @@ const getMyStats = catchAsync(async (req: Request, res: Response) => {
  * ADMIN CONTROLLERS
  * ========================
  */
+// Approve or reject guide
+const approveOrRejectGuide = catchAsync(async (req: Request, res: Response) => {
+	const { guideId } = req.params
+	const { status } = req.query
+	const decodedToken = req.user as JwtPayload
 
-// Get all guides (with optional filters: status, user, division)
-const getAllGuides = catchAsync(async (req: Request, res: Response) => {
-	const filters = {
-		status: req.query.status as IGuideStatus,
-		user: req.query.user as string,
-		division: req.query.division as string,
+	// validate status
+	if (status !== IGuideStatus.APPROVED && status !== IGuideStatus.REJECTED) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Invalid status value')
 	}
-	const result = await GuideService.getAllGuidesFromDB(filters)
+
+	const result = await GuideService.approveOrRejectGuideInDB(
+		guideId,
+		status as IGuideStatus.APPROVED | IGuideStatus.REJECTED,
+		decodedToken,
+	)
+
 	sendResponse(res, {
 		success: true,
 		statusCode: httpStatus.OK,
-		message: 'Guides retrieved successfully',
+		message:
+			status === 'APPROVED'
+				? 'Guide approved successfully'
+				: 'Guide application got rejected',
 		data: result,
+	})
+})
+
+// Get all guides (with optional filters: status, user, division)
+const getAllGuides = catchAsync(async (req: Request, res: Response) => {
+	const result = await GuideService.getAllGuidesFromDB(
+		req.query as Record<string, string>,
+	)
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: 'All Guides retrieved successfully',
+		data: result.data,
+		meta: result.meta,
 	})
 })
 
@@ -112,19 +138,6 @@ const getSingleGuide = catchAsync(async (req: Request, res: Response) => {
 		success: true,
 		statusCode: httpStatus.OK,
 		message: 'Guide retrieved successfully',
-		data: result,
-	})
-})
-
-// Approve or reject guide
-const approveOrRejectGuide = catchAsync(async (req: Request, res: Response) => {
-	const { guideId } = req.params
-	const { status } = req.body as { status: IGuideStatus }
-	const result = await GuideService.approveOrRejectGuideInDB(guideId, status)
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: `Guide ${status.toLowerCase()} successfully`,
 		data: result,
 	})
 })

@@ -8,12 +8,11 @@ import { multerUpload } from '../../configs/multer.config'
 
 const router = express.Router()
 
-/**
+/*
  * ========================
  * User (Guide) Endpoints
  * ========================
  */
-
 router.post(
 	'/apply',
 	checkAuth(...Object.values(Role)),
@@ -22,19 +21,12 @@ router.post(
 	GuideController.applyGuide,
 )
 
-// GET /api/v1/guide?status=APPROVED&division=123
-router.get('/', GuideController.getAllGuides)
-
-// GET /api/v1/guide/:id
 router.get('/:id', GuideController.getSingleGuide)
 
-// GET /api/v1/guide/me
 router.get('/me', GuideController.getMyProfile)
 
-// PATCH /api/v1/guide/me
 router.patch(
-	'/me',
-	// validateRequest(GuideValidation.updateMyProfileSchema),
+	'/me', // validateRequest(GuideValidation.updateMyProfileSchema),
 	GuideController.updateMyProfile,
 )
 
@@ -44,23 +36,24 @@ router.get('/my-tours', GuideController.getMyTours)
 // GET /api/v1/guide/my-stats
 router.get('/my-stats', GuideController.getMyStats)
 
-/**
+/*
  * ========================
  * Admin Endpoints
+ * 1st route: update guide application
+ * 2nd route: get all guides
  * ========================
  */
 
-// POST /api/v1/guide/approve/:guideId
-router.post(
-	'/approve/:guideId',
-	// validateRequest(GuideValidation.approveGuideSchema),
+router.patch(
+	'/:guideId',
+	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
 	GuideController.approveOrRejectGuide,
 )
 
-router.patch(
-	'/:guideId',
-	// validateRequest(GuideValidation.updateGuideSchema),
-	GuideController.updateGuide,
+router.get(
+	'/',
+	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+	GuideController.getAllGuides,
 )
 
 router.delete('/:guideId', GuideController.deleteGuide)
