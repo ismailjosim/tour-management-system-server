@@ -16,7 +16,7 @@ const router = express.Router()
 
 router.post(
 	'/apply',
-	checkAuth(Role.USER),
+	checkAuth(...Object.values(Role)),
 	multerUpload.single('file'),
 	validateSchema(GuideValidation.applyGuideSchema),
 	GuideController.applyGuide,

@@ -1,4 +1,8 @@
+import httpStatus from 'http-status-codes'
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { deleteImageFromCloudinary } from '../../configs/cloudinary.config'
+import AppError from '../../errorHelpers/AppError'
+import { UserModel } from '../user/user.model'
 import { IGuide, IGuideStatus } from './guide.interface'
 import { GuideModel } from './guide.model'
 import { Types } from 'mongoose'
@@ -11,6 +15,27 @@ const applyGuideIntoDB = async (payload: {
 	division: Types.ObjectId
 	nidPhoto: string
 }): Promise<IGuide> => {
+	// *1: check user exists
+	const user = await UserModel.findById(payload.user)
+	if (!user) {
+		await deleteImageFromCloudinary(payload.nidPhoto)
+		throw new AppError(httpStatus.NOT_FOUND, 'User not found!')
+	}
+
+	// *2: check if user role is already GUIDE
+	if (user.role === 'GUIDE') {
+		await deleteImageFromCloudinary(payload.nidPhoto)
+		throw new AppError(httpStatus.BAD_REQUEST, 'You are already a guide')
+	}
+
+	// *3: check if user already applied
+	const isGuideExist = await GuideModel.findOne({ user: payload.user })
+	if (isGuideExist) {
+		await deleteImageFromCloudinary(payload.nidPhoto)
+		throw new AppError(httpStatus.BAD_REQUEST, 'You already applied as a guide')
+	}
+
+	// *4: Create New guide application
 	const newGuide = await GuideModel.create({
 		...payload,
 		status: IGuideStatus.PENDING,

@@ -5,6 +5,8 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { GuideService } from './guide.service'
 import { IGuide, IGuideStatus } from './guide.interface'
+import { JwtPayload } from 'jsonwebtoken'
+import { Types } from 'mongoose'
 
 /**
  * ========================
@@ -15,10 +17,13 @@ import { IGuide, IGuideStatus } from './guide.interface'
 // Apply as a guide
 const applyGuide = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
+		const decodedToken = req.user as JwtPayload
 		const payload: IGuide = {
 			...req.body,
+			user: new Types.ObjectId(decodedToken.userId),
+			nidPhoto: req.file?.path,
 		}
-		const result = await GuideService.applyGuideIntoDB(req.body)
+		const result = await GuideService.applyGuideIntoDB(payload)
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.CREATED,
