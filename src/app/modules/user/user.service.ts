@@ -7,6 +7,7 @@ import { JwtPayload } from 'jsonwebtoken'
 import { QueryBuilder } from '../../utils/QueryBuilder'
 import { userSearchableFields } from './user.constant'
 import { environmentVariables } from '../../configs/env'
+import { deleteImageFromCloudinary } from '../../configs/cloudinary.config'
 
 const createUserIntoDB = async (payload: Partial<IUser>) => {
 	const { email, password, ...rest } = payload
@@ -137,13 +138,59 @@ const updateUserIntoDB = async (
 	})
 	return newUpdatedUser
 }
+const updateUserProfilePictureIntoDB = async (
+	userId: string,
+	picture: string,
+	decodedToken: JwtPayload,
+) => {
+	// User can only update their own profile picture
+	if (userId !== decodedToken.userId) {
+		throw new AppError(
+			httpStatus.FORBIDDEN,
+			'You can only update your own profile picture',
+		)
+	}
 
+	// Check if user exists
+	const isUserExist = await UserModel.findById(userId)
+	if (!isUserExist) {
+		throw new AppError(httpStatus.NOT_FOUND, 'User not found')
+	}
+
+	// Check if user is active and not deleted
+	if (isUserExist.isDeleted) {
+		throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted')
+	}
+
+	if (!isUserExist.isActive) {
+		throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked')
+	}
+
+	// Update ONLY the profile picture field
+	const updatedUser = await UserModel.findByIdAndUpdate(
+		userId,
+		{ picture },
+		{
+			new: true,
+			runValidators: true,
+			select: '-password',
+		},
+	)
+
+	// Delete old profile picture from cloudinary (if exists)
+	if (picture && isUserExist.picture) {
+		await deleteImageFromCloudinary(isUserExist.picture)
+	}
+
+	return updatedUser
+}
 export const UserServices = {
 	createUserIntoDB,
 	getAllUsersFromDB,
 	getSingleUserFromDB,
 	updateUserIntoDB,
 	getMeFromDB,
+	updateUserProfilePictureIntoDB,
 }
 /*
  * email can't be updated

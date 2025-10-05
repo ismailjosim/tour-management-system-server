@@ -36,7 +36,7 @@ router.patch(
 	checkAuth(...Object.values(Role)),
 	multerUpload.single('file'),
 	validateSchema(UserSchemaValidation.updateUserSchemaValidation),
-	UserControllers.updateUser,
+	UserControllers.updateUserProfilePicture,
 )
 
 export const UserRoutes = router
