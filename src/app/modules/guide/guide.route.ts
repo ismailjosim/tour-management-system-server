@@ -23,7 +23,11 @@ router.post(
 
 router.get('/:id', GuideController.getSingleGuide)
 
-router.get('/me', GuideController.getMyProfile)
+router.get(
+	'/me/profile',
+	checkAuth(...Object.values(Role)),
+	GuideController.getMyProfile,
+)
 
 router.patch(
 	'/me', // validateRequest(GuideValidation.updateMyProfileSchema),

@@ -108,7 +108,7 @@ const getAllGuidesFromDB = async (query: Record<string, string>) => {
 		GuideModel.find()
 			.populate(
 				'user',
-				'name email role phone address isVerified isActive -_id',
+				'name email picture role phone address isVerified isActive -_id',
 			)
 			.populate('division', 'name thumbnail description -_id'),
 		query,
@@ -147,7 +147,13 @@ const getAllGuidesFromDB = async (query: Record<string, string>) => {
 
 // Get logged-in user's guide profile
 const getMyProfileFromDB = async (userId: string): Promise<IGuide | null> => {
-	return GuideModel.findOne({ user: userId }).populate('division')
+	const result = await GuideModel.findOne({ user: userId })
+		.populate(
+			'user',
+			'name email picture role phone address isVerified isActive -_id',
+		)
+		.populate('division', 'name thumbnail description -_id')
+	return result
 }
 
 // Update logged-in user's guide profile

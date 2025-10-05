@@ -36,8 +36,8 @@ const applyGuide = catchAsync(
 
 // Get current logged-in guide profile
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-	const userId = req.params.id
-	const result = await GuideService.getMyProfileFromDB(userId)
+	const decodedToken = req.user as JwtPayload
+	const result = await GuideService.getMyProfileFromDB(decodedToken.userId)
 	sendResponse(res, {
 		success: true,
 		statusCode: httpStatus.OK,
