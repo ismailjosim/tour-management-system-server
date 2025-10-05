@@ -30,7 +30,7 @@ export interface IUser {
 	email: string
 	password?: string
 	phone?: string
-	picture?: string
+	picture?: string | null
 	address?: string
 	role: Role
 	isDeleted?: boolean
