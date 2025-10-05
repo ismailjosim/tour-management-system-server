@@ -73,6 +73,24 @@ const updateUser = catchAsync(
 		})
 	},
 )
+const updateUserProfilePicture = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const userId = req.params.id
+		const decodedToken = req.user as JwtPayload
+		const picture = req?.file?.path as string
+		const result = await UserServices.updateUserProfilePictureIntoDB(
+			userId,
+			picture,
+			decodedToken,
+		)
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.CREATED,
+			message: 'User Profile Picture Updated successfully',
+			data: null,
+		})
+	},
+)
 
 export const UserControllers = {
 	crateUser,
@@ -80,4 +98,5 @@ export const UserControllers = {
 	getSingleUser,
 	updateUser,
 	getMe,
+	updateUserProfilePicture,
 }
