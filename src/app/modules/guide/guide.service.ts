@@ -105,7 +105,7 @@ const approveOrRejectGuideInDB = async (
 // Get all guides
 const getAllGuidesFromDB = async (query: Record<string, string>) => {
 	const queryBuilder = new QueryBuilder(
-		GuideModel.find()
+		GuideModel.find({ status: { $in: ['PENDING', 'REJECTED'] } })
 			.populate(
 				'user',
 				'name email picture role phone address isVerified isActive -_id',
