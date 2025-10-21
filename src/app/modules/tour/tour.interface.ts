@@ -1,4 +1,13 @@
+// ========================================
+// tour.interface.ts
+// ========================================
 import { Types } from 'mongoose'
+
+export interface ILocationInMap {
+	title: string
+	lat: number
+	lng: number
+}
 
 export interface ITourType {
 	name: string
@@ -21,9 +30,9 @@ export interface ITour {
 	tourPlan?: string[]
 	maxGuest?: number
 	minAge?: number
-	// add new field for ongoing project
 	departureLocation?: string
 	arrivalLocation?: string
-	// to give the user specify which image properties will be deleted
+	departureLocationInMap?: ILocationInMap
+	arrivalLocationInMap?: ILocationInMap
 	deleteImage?: string[]
 }

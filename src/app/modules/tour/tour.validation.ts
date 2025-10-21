@@ -1,3 +1,6 @@
+// ========================================
+// tour.validation.ts
+// ========================================
 import z from 'zod'
 
 const tourTypeValidationSchema = z.object({
@@ -9,15 +12,21 @@ const tourTypeValidationSchema = z.object({
 		.max(50, { message: 'Name is too long' }),
 })
 
+const locationInMapSchema = z.object({
+	title: z.string().min(1, 'Location title is required'),
+	lat: z.number(),
+	lng: z.number(),
+})
+
 const createTourValidationSchema = z.object({
 	title: z.string(),
 	description: z.string().optional(),
 	images: z.array(z.string()).optional(),
 	location: z.string().optional(),
 	costFrom: z.number().optional(),
-	startDate: z.string().optional().optional(),
-	endDate: z.string().optional().optional(),
-	tourType: z.string(), // <- changed here
+	startDate: z.string().optional(),
+	endDate: z.string().optional(),
+	tourType: z.string(),
 	included: z.array(z.string()).optional(),
 	excluded: z.array(z.string()).optional(),
 	amenities: z.array(z.string()).optional(),
@@ -27,6 +36,8 @@ const createTourValidationSchema = z.object({
 	division: z.string(),
 	departureLocation: z.string().optional(),
 	arrivalLocation: z.string().optional(),
+	departureLocationInMap: locationInMapSchema.optional(),
+	arrivalLocationInMap: locationInMapSchema.optional(),
 })
 
 const updateTourValidationSchema = z.object({
@@ -35,9 +46,9 @@ const updateTourValidationSchema = z.object({
 	location: z.string().optional(),
 	images: z.array(z.string()).optional(),
 	costFrom: z.number().optional(),
-	startDate: z.string().optional().optional(),
-	endDate: z.string().optional().optional(),
-	tourType: z.string().optional(), // <- changed here
+	startDate: z.string().optional(),
+	endDate: z.string().optional(),
+	tourType: z.string().optional(),
 	included: z.array(z.string()).optional(),
 	excluded: z.array(z.string()).optional(),
 	amenities: z.array(z.string()).optional(),
@@ -46,6 +57,8 @@ const updateTourValidationSchema = z.object({
 	minAge: z.number().optional(),
 	departureLocation: z.string().optional(),
 	arrivalLocation: z.string().optional(),
+	departureLocationInMap: locationInMapSchema.optional(),
+	arrivalLocationInMap: locationInMapSchema.optional(),
 	deleteImage: z.array(z.string()).optional(),
 })
 

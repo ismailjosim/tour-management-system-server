@@ -1,5 +1,8 @@
+// ========================================
+// tour.model.ts
+// ========================================
 import { model, Schema } from 'mongoose'
-import { ITour, ITourType } from './tour.interface'
+import { ITour, ITourType, ILocationInMap } from './tour.interface'
 
 const tourTypeSchema = new Schema<ITourType>(
 	{
@@ -11,6 +14,15 @@ const tourTypeSchema = new Schema<ITourType>(
 	},
 )
 
+const locationInMapSchema = new Schema<ILocationInMap>(
+	{
+		title: { type: String, required: true },
+		lat: { type: Number, required: true },
+		lng: { type: Number, required: true },
+	},
+	{ _id: false },
+)
+
 const tourSchema = new Schema<ITour>(
 	{
 		title: { type: String, required: true },
@@ -20,6 +32,8 @@ const tourSchema = new Schema<ITour>(
 		location: { type: String },
 		departureLocation: { type: String, default: 'default' },
 		arrivalLocation: { type: String, default: 'default' },
+		departureLocationInMap: { type: locationInMapSchema, default: null },
+		arrivalLocationInMap: { type: locationInMapSchema, default: null },
 		costFrom: { type: Number },
 		startDate: { type: Date },
 		endDate: { type: Date },
@@ -45,7 +59,7 @@ tourSchema.pre('save', async function (next) {
 
 		let counter = 0
 		while (await TourModel.exists({ slug })) {
-			slug = `${slug}-${counter++}`
+			slug = `${baseSlug}-${counter++}`
 		}
 
 		this.slug = slug
@@ -62,7 +76,7 @@ tourSchema.pre('findOneAndUpdate', async function (next) {
 
 		let counter = 0
 		while (await TourModel.exists({ slug })) {
-			slug = `${slug}-${counter++}`
+			slug = `${baseSlug}-${counter++}`
 		}
 
 		tour.slug = slug
