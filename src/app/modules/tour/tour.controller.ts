@@ -55,14 +55,26 @@ const getSingleTour = catchAsync(
 	},
 )
 
+// controller code
+
 const updateTour = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
+		// 1. Get paths of NEWLY uploaded files
+		const newImagePaths =
+			(req.files as Express.Multer.File[])?.map((file) => file.path) || []
+
+		// 2. Get EXISTING image URLs from the parsed body
+		// (req.body.images comes from the 'images' array you just added to tourData)
+		const existingImages = req.body.images || []
+
 		const payload: ITour = {
 			...req.body,
-			images: (req.files as Express.Multer.File[])?.map((file) => file.path),
+			// 3. Combine both arrays to form the complete images list
+			images: [...existingImages, ...newImagePaths],
 		}
 
 		const result = await TourServices.updateTourIntoDB(req.params.id, payload)
+
 		sendResponse(res, {
 			success: true,
 			statusCode: httpStatus.OK,
