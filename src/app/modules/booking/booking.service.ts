@@ -93,7 +93,6 @@ const createBookingIntoDB = async (
 			transactionId: transactionId,
 		}
 		const sslPayment = await SSLService.sslPaymentInit(sslPayload)
-		// console.log(sslPayment)
 
 		// ✅ Commit transaction
 		await session.commitTransaction()
