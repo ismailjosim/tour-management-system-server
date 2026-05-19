@@ -7,14 +7,21 @@ export const redisClient = createClient({
 	socket: {
 		host: environmentVariables.REDIS.REDIS_HOST,
 		port: Number(environmentVariables.REDIS.REDIS_PORT),
+		connectTimeout: 5000,
 	},
 })
 
 redisClient.on('error', (err) => console.log('Redis Client Error', err))
 
 export const connectRedis = async () => {
-	if (!redisClient.isOpen) {
+	if (redisClient.isOpen) {
+		return
+	}
+
+	try {
 		await redisClient.connect()
 		console.log('Redis Connected')
+	} catch (error) {
+		console.log('Redis connection failed. OTP features may be unavailable.', error)
 	}
 }

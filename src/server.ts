@@ -39,20 +39,20 @@ const cleanExit = (signal: string) => {
 async function startServer() {
 	try {
 		await connectDB()
+		await connectRedis()
 		server = app.listen(environmentVariables.PORT, () => {
 			console.log(
 				`🚀 Traveler Server running on port: ${environmentVariables.PORT}`
 					.bgMagenta.bold,
 			)
 		})
+		await seedSuperAdmin()
 	} catch (error) {
 		gracefulShutdown('❌ Failed to connect to database or start server', error)
 	}
 }
 ;(async () => {
-	await connectRedis()
 	await startServer()
-	await seedSuperAdmin()
 })()
 
 // Unhandled Promise Rejection
