@@ -18,6 +18,7 @@ router.post(
 	ReviewController.createReview,
 )
 
+router.get('/', ReviewController.getAllReviews)
 router.get('/:tourId', ReviewController.getSpecificTourReviews)
 
 export const ReviewRoutes = router

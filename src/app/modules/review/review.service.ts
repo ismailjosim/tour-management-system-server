@@ -82,7 +82,29 @@ const getSpecificTourReviewsFromDB = async (
 	}
 }
 
+const getAllReviewsFromDB = async (query: Record<string, string>) => {
+	const queryBuilder = new QueryBuilder(
+		ReviewModel.find()
+			.populate('user', 'name picture -_id')
+			.populate('tour', 'title slug location -_id'),
+		query,
+	)
+
+	const reviews = queryBuilder.filter().sort().fields().paginate()
+
+	const [data, meta] = await Promise.all([
+		reviews.build(),
+		queryBuilder.getMeta(),
+	])
+
+	return {
+		data,
+		meta,
+	}
+}
+
 export const ReviewService = {
 	createReviewIntoDB,
+	getAllReviewsFromDB,
 	getSpecificTourReviewsFromDB,
 }

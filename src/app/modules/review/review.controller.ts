@@ -39,7 +39,23 @@ const getSpecificTourReviews = catchAsync(
 	},
 )
 
+const getAllReviews = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const result = await ReviewService.getAllReviewsFromDB(
+			req.query as Record<string, string>,
+		)
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: 'Reviews Retrieved successfully',
+			data: result,
+		})
+	},
+)
+
 export const ReviewController = {
 	createReview,
+	getAllReviews,
 	getSpecificTourReviews,
 }
