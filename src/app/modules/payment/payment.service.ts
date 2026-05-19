@@ -13,6 +13,37 @@ import { ITour } from '../tour/tour.interface'
 import { sendMail } from '../../utils/sendEmail'
 import { uploadBufferToCloudinary } from '../../configs/cloudinary.config'
 
+const getTransactionIdFromPayload = (payload: Record<string, string>) =>
+	payload.tran_id || payload.transactionId || payload.transaction_id
+
+const isValidSslPayment = (status?: string) =>
+	status === 'VALID' || status === 'VALIDATED'
+
+const assertPaymentMatchesGateway = (
+	paymentAmount: number,
+	transactionId: string,
+	gatewayData: Record<string, any>,
+) => {
+	if (!isValidSslPayment(gatewayData.status)) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'Payment validation failed with SSLCommerz',
+		)
+	}
+
+	if (!gatewayData.tran_id || gatewayData.tran_id !== transactionId) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'Payment transaction id mismatch',
+		)
+	}
+
+	const gatewayAmount = Number(gatewayData.amount)
+	if (!Number.isFinite(gatewayAmount) || gatewayAmount !== paymentAmount) {
+		throw new AppError(httpStatus.BAD_REQUEST, 'Payment amount mismatch')
+	}
+}
+
 const initPaymentIntoDB = async (bookingId: string) => {
 	const payment = await PaymentModel.findOne({ booking: bookingId })
 	if (!payment) {
@@ -52,22 +83,50 @@ const initPaymentIntoDB = async (bookingId: string) => {
 }
 
 const successPaymentIntoDB = async (query: Record<string, string>) => {
+	const transactionId = getTransactionIdFromPayload(query)
+	if (!transactionId) {
+		throw new AppError(StatusCodes.BAD_REQUEST, 'Transaction id is required')
+	}
+
+	const gatewayData = await SSLService.validatePayment(query)
+
 	const session = await BookingModel.startSession()
 	session.startTransaction()
 
 	try {
-		const updatedPayment = await PaymentModel.findOneAndUpdate(
+		const payment = await PaymentModel.findOne({
+			transactionId,
+		}).session(session)
+		if (!payment) {
+			throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found')
+		}
+
+		assertPaymentMatchesGateway(payment.amount, transactionId, gatewayData)
+
+		if (payment.status === PAYMENT_STATUS.PAID) {
+			await PaymentModel.findByIdAndUpdate(
+				payment._id,
+				{ paymentGatewayData: gatewayData },
+				{ runValidators: true, session },
+			)
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already completed' }
+		}
+
+		const updatedPayment = await PaymentModel.findByIdAndUpdate(
+			payment._id,
 			{
-				transactionId: query.transactionId,
+				status: PAYMENT_STATUS.PAID,
+				paymentGatewayData: gatewayData,
 			},
-			{ status: PAYMENT_STATUS.PAID },
 			{ new: true, runValidators: true, session },
 		)
 		if (!updatedPayment) {
 			throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found')
 		}
 
-		// 🧠 Tell TypeScript: "This is a PopulatedBooking"
 		const updatedBooking = await BookingModel.findByIdAndUpdate(
 			updatedPayment.booking,
 			{ status: BOOKING_STATUS.COMPLETE },
@@ -141,20 +200,49 @@ const successPaymentIntoDB = async (query: Record<string, string>) => {
 }
 
 const failPaymentIntoDB = async (query: Record<string, string>) => {
+	const transactionId = getTransactionIdFromPayload(query)
+	if (!transactionId) {
+		throw new AppError(StatusCodes.BAD_REQUEST, 'Transaction id is required')
+	}
+
 	const session = await BookingModel.startSession()
 	session.startTransaction()
 
 	try {
-		// 1️⃣ Update payment status to PAID
-		const updatedPayment = await PaymentModel.findOneAndUpdate(
-			{
-				transactionId: query.transactionId,
-			},
-			{ status: PAYMENT_STATUS.FAILED },
-			{ runValidators: true, session },
+		const payment = await PaymentModel.findOne({ transactionId }).session(
+			session,
+		)
+		if (!payment) {
+			throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found')
+		}
+
+		if (payment.status === PAYMENT_STATUS.PAID) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already completed' }
+		}
+
+		if (payment.status === PAYMENT_STATUS.FAILED) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already marked as failed' }
+		}
+
+		if (payment.status === PAYMENT_STATUS.CANCELLED) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already cancelled' }
+		}
+
+		const updatedPayment = await PaymentModel.findByIdAndUpdate(
+			payment._id,
+			{ status: PAYMENT_STATUS.FAILED, paymentGatewayData: query },
+			{ new: true, runValidators: true, session },
 		)
 
-		// 2️⃣ update booking status to Confirm
 		await BookingModel.findByIdAndUpdate(
 			updatedPayment?.booking,
 			{ status: BOOKING_STATUS.FAILED },
@@ -172,20 +260,49 @@ const failPaymentIntoDB = async (query: Record<string, string>) => {
 	}
 }
 const cancelPaymentIntoDB = async (query: Record<string, string>) => {
+	const transactionId = getTransactionIdFromPayload(query)
+	if (!transactionId) {
+		throw new AppError(StatusCodes.BAD_REQUEST, 'Transaction id is required')
+	}
+
 	const session = await BookingModel.startSession()
 	session.startTransaction()
 
 	try {
-		// 1️⃣ Update payment status to PAID
-		const updatedPayment = await PaymentModel.findOneAndUpdate(
-			{
-				transactionId: query.transactionId,
-			},
-			{ status: PAYMENT_STATUS.CANCELLED },
-			{ runValidators: true, session },
+		const payment = await PaymentModel.findOne({ transactionId }).session(
+			session,
+		)
+		if (!payment) {
+			throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found')
+		}
+
+		if (payment.status === PAYMENT_STATUS.PAID) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already completed' }
+		}
+
+		if (payment.status === PAYMENT_STATUS.CANCELLED) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already cancelled' }
+		}
+
+		if (payment.status === PAYMENT_STATUS.FAILED) {
+			await session.commitTransaction()
+			session.endSession()
+
+			return { success: true, message: 'Payment already marked as failed' }
+		}
+
+		const updatedPayment = await PaymentModel.findByIdAndUpdate(
+			payment._id,
+			{ status: PAYMENT_STATUS.CANCELLED, paymentGatewayData: query },
+			{ new: true, runValidators: true, session },
 		)
 
-		// 2️⃣ update booking status to Confirm
 		await BookingModel.findByIdAndUpdate(
 			updatedPayment?.booking,
 			{ status: BOOKING_STATUS.CANCEL },
@@ -216,10 +333,34 @@ const getInvoiceDownloadURLFromDB = async (id: string) => {
 	return payment
 }
 
+const validatePaymentIntoDB = async (payload: Record<string, string>) => {
+	const transactionId = getTransactionIdFromPayload(payload)
+	if (!transactionId) {
+		throw new AppError(StatusCodes.BAD_REQUEST, 'Transaction id is required')
+	}
+
+	const gatewayData = await SSLService.validatePayment(payload)
+	const payment = await PaymentModel.findOne({ transactionId })
+	if (!payment) {
+		throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found')
+	}
+
+	assertPaymentMatchesGateway(payment.amount, transactionId, gatewayData)
+
+	await PaymentModel.findByIdAndUpdate(
+		payment._id,
+		{ paymentGatewayData: gatewayData },
+		{ runValidators: true },
+	)
+
+	return gatewayData
+}
+
 export const PaymentService = {
 	initPaymentIntoDB,
 	successPaymentIntoDB,
 	failPaymentIntoDB,
 	cancelPaymentIntoDB,
 	getInvoiceDownloadURLFromDB,
+	validatePaymentIntoDB,
 }
