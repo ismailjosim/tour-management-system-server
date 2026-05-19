@@ -184,6 +184,34 @@ const getMyStatsFromDB = async (userId: string) => {
 	}
 }
 
+const getPublicGuidesFromDB = async (query: Record<string, string>) => {
+	const page = Number(query.page) || 1
+	const limit = Number(query.limit) || 4
+	const skip = (page - 1) * limit
+	const sort = query.sort || '-createdAt'
+	const filter = { status: IGuideStatus.APPROVED }
+
+	const [data, total] = await Promise.all([
+		GuideModel.find(filter)
+			.populate('user', 'name email picture phone address role -_id')
+			.populate('division', 'name thumbnail description -_id')
+			.sort(sort)
+			.skip(skip)
+			.limit(limit),
+		GuideModel.countDocuments(filter),
+	])
+
+	return {
+		data,
+		meta: {
+			page,
+			limit,
+			total,
+			totalPage: Math.ceil(total / limit),
+		},
+	}
+}
+
 // Get single guide details
 const getSingleGuideFromDB = async (id: string): Promise<IGuide | null> => {
 	return GuideModel.findById(id).populate('user division')
@@ -211,6 +239,7 @@ export const GuideService = {
 	updateMyProfileInDB,
 	getMyToursFromDB,
 	getMyStatsFromDB,
+	getPublicGuidesFromDB,
 	getAllGuidesFromDB,
 	getSingleGuideFromDB,
 	approveOrRejectGuideInDB,
