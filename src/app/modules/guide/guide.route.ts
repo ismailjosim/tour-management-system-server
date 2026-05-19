@@ -21,6 +21,7 @@ router.post(
 	GuideController.applyGuide,
 )
 
+router.get('/public', GuideController.getPublicGuides)
 router.get('/:id', GuideController.getSingleGuide)
 
 router.get(

@@ -83,6 +83,20 @@ const getMyStats = catchAsync(async (req: Request, res: Response) => {
 	})
 })
 
+const getPublicGuides = catchAsync(async (req: Request, res: Response) => {
+	const result = await GuideService.getPublicGuidesFromDB(
+		req.query as Record<string, string>,
+	)
+
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: 'Guides retrieved successfully',
+		data: result.data,
+		meta: result.meta,
+	})
+})
+
 /**
  * ========================
  * ADMIN CONTROLLERS
@@ -177,6 +191,7 @@ export const GuideController = {
 	updateMyProfile,
 	getMyTours,
 	getMyStats,
+	getPublicGuides,
 	getAllGuides,
 	getSingleGuide,
 	approveOrRejectGuide,

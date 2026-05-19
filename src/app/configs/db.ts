@@ -10,7 +10,7 @@ const connectDB = async () => {
 		console.log('Traveler Database Connected successfully'.bgBlue.bold)
 	} catch (error) {
 		console.log(`Failed to connect to database: ${error}`.bgRed.bold)
-		process.exit(1)
+		throw error
 	}
 }
 

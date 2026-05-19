@@ -52,7 +52,6 @@ interface EnvConfig {
 
 const loadEnvironmentVars = (): EnvConfig => {
 	const requiredEnvironmentVars: string[] = [
-		'PORT',
 		'DATABASE_URL',
 		'NODE_ENV',
 		'JWT_ACCESS_SECRET',
@@ -98,7 +97,7 @@ const loadEnvironmentVars = (): EnvConfig => {
 	})
 
 	return {
-		PORT: process.env.PORT as string,
+		PORT: process.env.PORT || '5000',
 		DATABASE_URL: process.env.DATABASE_URL as string,
 		NODE_ENV: process.env.NODE_ENV as 'development' | 'production',
 		JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET as string,

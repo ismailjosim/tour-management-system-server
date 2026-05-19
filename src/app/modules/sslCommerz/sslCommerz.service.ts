@@ -4,7 +4,6 @@ import { environmentVariables } from '../../configs/env'
 import AppError from '../../errorHelpers/AppError'
 import { ISSlCommerz } from './sslCommerz.interface'
 import axios from 'axios'
-import { PaymentModel } from '../payment/payment.model'
 import qs from 'qs'
 
 const sslPaymentInit = async (payload: ISSlCommerz) => {
@@ -43,14 +42,15 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 			ship_country: 'Bangladesh',
 		}
 
-		// ✅ IMPORTANT: use v4 endpoint directly (avoid wrong env)
-		const SSL_URL = 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'
-
-		const res = await axios.post(SSL_URL, qs.stringify(data), {
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
+		const res = await axios.post(
+			environmentVariables.SSL.SSL_PAYMENT_API.trim(),
+			qs.stringify(data),
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
 			},
-		})
+		)
 
 		// ✅ Debug check
 		if (typeof res.data === 'string') {
@@ -69,20 +69,24 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 
 const validatePayment = async (payload: any) => {
 	try {
-		const VALIDATION_URL =
-			'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php'
+		if (!payload.val_id) {
+			throw new AppError(httpStatus.BAD_REQUEST, 'Missing SSLCommerz val_id')
+		}
 
 		const response = await axios.get(
-			`${VALIDATION_URL}?val_id=${payload.val_id}&store_id=${environmentVariables.SSL.SSL_STORE_ID}&store_passwd=${environmentVariables.SSL.SSL_STORE_PASS}&v=1&format=json`,
+			environmentVariables.SSL.SSL_VALIDATION_API.trim(),
+			{
+				params: {
+					val_id: payload.val_id,
+					store_id: environmentVariables.SSL.SSL_STORE_ID,
+					store_passwd: environmentVariables.SSL.SSL_STORE_PASS,
+					v: 1,
+					format: 'json',
+				},
+			},
 		)
 
 		console.log('SSLCommerz Validate API Response:', response.data)
-
-		await PaymentModel.updateOne(
-			{ transactionId: payload.tran_id }, // ✅ FIXED (was wrong before)
-			{ paymentGatewayData: response.data },
-			{ runValidators: true },
-		)
 
 		return response.data
 	} catch (error: any) {
