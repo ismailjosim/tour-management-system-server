@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import PDFDocument from 'pdfkit';
-import { environmentVariables } from '../configs/env';
 import AppError from '../errorHelpers/AppError';
 import StatusCodes from 'http-status-codes';
 
@@ -88,9 +87,6 @@ export const generatePDF = async (data: IInvoiceData): Promise<Buffer<ArrayBuffe
       doc.end();
     });
   } catch (error: any) {
-    if (environmentVariables.NODE_ENV === 'development') {
-      console.log(error);
-    }
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       `Found Error While generation PDF: ${error.message}`

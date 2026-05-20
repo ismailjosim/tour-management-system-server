@@ -26,7 +26,6 @@ const createReviewIntoDB = async (payload: IReview, userId: string) => {
     .populate('payment', 'status')
     .exec();
 
-  console.log(booking);
 
   if (!booking) {
     throw new AppError(httpStatus.BAD_REQUEST, 'You must book this tour before posting a review');

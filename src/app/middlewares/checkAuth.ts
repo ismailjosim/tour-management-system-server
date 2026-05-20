@@ -11,10 +11,15 @@ const checkAuth =
   (...authRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const accessToken = req.headers.authorization || req.cookies.accessToken;
+      let accessToken = req.headers.authorization || req.cookies.accessToken;
 
       if (!accessToken) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Token not received');
+      }
+
+      // Strip "Bearer " prefix if present
+      if (accessToken.startsWith('Bearer ')) {
+        accessToken = accessToken.slice(7); // Remove "Bearer " (7 characters)
       }
 
       const tokenVerification = verifyToken(

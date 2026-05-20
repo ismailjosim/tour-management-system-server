@@ -138,8 +138,8 @@ const updateTourIntoDB = async (id: string, payload: ITour) => {
   ) {
     await Promise.all(
       payload.deleteImage.map((url) =>
-        deleteImageFromCloudinary(url).catch((error) => {
-          console.error(`❌ Failed to delete image: ${url}`, error);
+        deleteImageFromCloudinary(url).catch(() => {
+          // Silently handle image deletion error
         })
       )
     );

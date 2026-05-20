@@ -10,9 +10,6 @@ const seedSuperAdmin = async () => {
     });
 
     if (isSuperAdminExist) {
-      if (environmentVariables.NODE_ENV === 'development') {
-        console.log('Super Admin already exist');
-      }
       return;
     }
 
@@ -32,14 +29,13 @@ const seedSuperAdmin = async () => {
       isVerified: true,
     };
 
-    const superAdmin = await UserModel.create(payload);
-    if (environmentVariables.NODE_ENV === 'development') {
-      console.log('Super Admin Created Successfully. Name: ', superAdmin.name);
-    }
-  } catch (error) {
-    if (environmentVariables.NODE_ENV === 'development') {
-      console.log(error);
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _superAdmin = await UserModel.create(payload);
+  } catch (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _error
+  ) {
+    // Silently handle seeding error
   }
 };
 

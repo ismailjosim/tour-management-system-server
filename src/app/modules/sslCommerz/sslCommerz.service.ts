@@ -59,7 +59,6 @@ const sslPaymentInit = async (payload: ISSlCommerz) => {
 
     return res.data;
   } catch (error: any) {
-    console.log('payment error occurred', error?.response?.data || error.message);
     throw new AppError(httpStatus.BAD_REQUEST, error.message);
   }
 };
@@ -80,12 +79,8 @@ const validatePayment = async (payload: any) => {
       },
     });
 
-    console.log('SSLCommerz Validate API Response:', response.data);
-
     return response.data;
   } catch (error: any) {
-    console.log('Validation Error:', error?.response?.data || error.message);
-
     throw new AppError(httpStatus.BAD_REQUEST, `Payment validation failed: ${error.message}`);
   }
 };

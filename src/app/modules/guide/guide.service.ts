@@ -136,7 +136,7 @@ const approveOrRejectGuideInDB = async (
 // Get all guides
 const getAllGuidesFromDB = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(
-    GuideModel.find({ status: { $in: ['PENDING', 'REJECTED'] } })
+    GuideModel.find()
       .populate('user', 'name email picture role phone address isVerified isActive -_id')
       .populate('division', 'name thumbnail description -_id'),
     query
@@ -479,6 +479,44 @@ const deleteGuideFromDB = async (guideId: string): Promise<IGuide | null> => {
   return GuideModel.findByIdAndDelete(guideId);
 };
 
+// Get available guides for a specific tour
+const getAvailableGuidesForTourFromDB = async (tourId: string) => {
+  const { TourModel } = await import('../tour/tour.model');
+
+  // 1️⃣ Get tour details to find division
+  const tour = await TourModel.findById(tourId);
+  if (!tour) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Tour not found');
+  }
+
+  // 2️⃣ Find all approved guides in the tour's division
+  const guides = await GuideModel.find({
+    division: tour.division,
+    status: IGuideStatus.APPROVED,
+  })
+    .populate('user', 'name email phone picture address role -_id')
+    .populate('division', 'name -_id')
+    .lean();
+
+  // 3️⃣ Filter out guides with conflicting unavailable dates
+  const tourStartDate = new Date(tour.startDate);
+  const tourEndDate = new Date(tour.endDate);
+
+  const availableGuides = guides.filter((guide) => {
+    if (!guide.unavailableDates || guide.unavailableDates.length === 0) {
+      return true;
+    }
+
+    // Check if any unavailable date overlaps with tour dates
+    return !guide.unavailableDates.some((unavailableDate) => {
+      const date = new Date(unavailableDate);
+      return date >= tourStartDate && date <= tourEndDate;
+    });
+  });
+
+  return availableGuides;
+};
+
 // ========== EXPORT ==========
 export const GuideService = {
   applyGuideIntoDB,
@@ -495,6 +533,7 @@ export const GuideService = {
   getPublicGuidesFromDB,
   getAllGuidesFromDB,
   getSingleGuideFromDB,
+  getAvailableGuidesForTourFromDB,
   approveOrRejectGuideInDB,
   updateGuideInDB,
   deleteGuideFromDB,

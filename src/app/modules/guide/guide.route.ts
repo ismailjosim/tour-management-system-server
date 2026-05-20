@@ -52,6 +52,9 @@ router.get('/my-tours', checkAuth(Role.GUIDE), GuideController.getMyTours);
 
 router.get('/my-stats', checkAuth(Role.GUIDE), GuideController.getMyStats);
 
+// Get available guides for a specific tour
+router.get('/available/:tourId', GuideController.getAvailableGuidesForTour);
+
 router.get('/:id', GuideController.getSingleGuide);
 
 /*

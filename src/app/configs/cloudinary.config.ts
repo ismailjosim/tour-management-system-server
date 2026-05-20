@@ -39,9 +39,6 @@ export const uploadBufferToCloudinary = async (
         .end(buffer);
     });
   } catch (error: any) {
-    if (environmentVariables.NODE_ENV === 'development') {
-      console.error('❌ Cloudinary Deletion Error:', error);
-    }
     throw new AppError(httpStatus.BAD_REQUEST, `Error while Uploading File: ${error.message}`);
   }
 };
@@ -54,14 +51,8 @@ export const deleteImageFromCloudinary = async (url: string) => {
     if (match && match[1]) {
       const publicId = match[1];
       await cloudinary.uploader.destroy(publicId);
-      if (environmentVariables.NODE_ENV === 'development') {
-        console.log(`✅ File deleted: ${publicId}`);
-      }
     }
   } catch (error: any) {
-    if (environmentVariables.NODE_ENV === 'development') {
-      console.error('❌ Cloudinary Deletion Error:', error);
-    }
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `Cloudinary Image Deletion Failed: ${error.message}`

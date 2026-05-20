@@ -18,16 +18,13 @@ export const globalErrorHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (environmentVariables.NODE_ENV === 'development') {
-    console.log(err);
-  }
 
   // ✅ Delete Single File if present
   if (req.file?.path) {
     try {
       await deleteImageFromCloudinary(req.file.path);
     } catch (error) {
-      console.error('❌ Failed to delete single image:', error);
+      // Silently handle image deletion error
     }
   }
 
@@ -37,8 +34,8 @@ export const globalErrorHandler = async (
 
     await Promise.all(
       imgUrls.map((url) =>
-        deleteImageFromCloudinary(url).catch((error) => {
-          console.error(`❌ Failed to delete image: ${url}`, error);
+        deleteImageFromCloudinary(url).catch(() => {
+          // Silently handle image deletion error
         })
       )
     );

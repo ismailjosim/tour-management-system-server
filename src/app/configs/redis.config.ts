@@ -11,7 +11,9 @@ export const redisClient = createClient({
   },
 });
 
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
+redisClient.on('error', () => {
+  // Error handler for Redis client
+});
 
 export const connectRedis = async () => {
   if (redisClient.isOpen) {
@@ -20,8 +22,10 @@ export const connectRedis = async () => {
 
   try {
     await redisClient.connect();
-    console.log('Redis Connected');
-  } catch (error) {
-    console.log('Redis connection failed. OTP features may be unavailable.', error);
+  } catch (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _error
+  ) {
+    // Redis connection failed, OTP features may be unavailable
   }
 };

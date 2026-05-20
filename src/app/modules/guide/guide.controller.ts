@@ -250,6 +250,18 @@ const deleteGuide = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get available guides for a specific tour
+const getAvailableGuidesForTour = catchAsync(async (req: Request, res: Response) => {
+  const { tourId } = req.params;
+  const result = await GuideService.getAvailableGuidesForTourFromDB(tourId);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Available guides retrieved successfully',
+    data: result,
+  });
+});
+
 /**
  * ========================
  * EXPORT
@@ -270,6 +282,7 @@ export const GuideController = {
   getPublicGuides,
   getAllGuides,
   getSingleGuide,
+  getAvailableGuidesForTour,
   approveOrRejectGuide,
   updateGuide,
   deleteGuide,
