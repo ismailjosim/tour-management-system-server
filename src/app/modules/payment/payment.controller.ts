@@ -5,6 +5,7 @@ import { PaymentService } from './payment.service'
 import httpStatus from 'http-status-codes'
 import { environmentVariables } from '../../configs/env'
 import sendResponse from '../../utils/sendResponse'
+import { JwtPayload } from 'jsonwebtoken'
 
 const buildPaymentRedirectUrl = (
 	baseUrl: string,
@@ -26,7 +27,11 @@ const buildPaymentRedirectUrl = (
 
 const initPayment = catchAsync(async (req: Request, res: Response) => {
 	const bookingId = req.params.bookingId
-	const result = await PaymentService.initPaymentIntoDB(bookingId as string)
+	const decodedToken = req.user as JwtPayload
+	const result = await PaymentService.initPaymentIntoDB(
+		bookingId as string,
+		decodedToken,
+	)
 	sendResponse(res, {
 		statusCode: 201,
 		success: true,

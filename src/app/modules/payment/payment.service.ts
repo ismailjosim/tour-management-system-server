@@ -9,9 +9,11 @@ import { ISSlCommerz } from '../sslCommerz/sslCommerz.interface'
 import { SSLService } from '../sslCommerz/sslCommerz.service'
 import { generatePDF, IInvoiceData } from '../../utils/invoice'
 import { IUser } from '../user/user.interface'
+import { Role } from '../user/user.interface'
 import { ITour } from '../tour/tour.interface'
 import { sendMail } from '../../utils/sendEmail'
 import { uploadBufferToCloudinary } from '../../configs/cloudinary.config'
+import { JwtPayload } from 'jsonwebtoken'
 
 const getTransactionIdFromPayload = (payload: Record<string, string>) =>
 	payload.tran_id || payload.transactionId || payload.transaction_id
@@ -44,7 +46,7 @@ const assertPaymentMatchesGateway = (
 	}
 }
 
-const initPaymentIntoDB = async (bookingId: string) => {
+const initPaymentIntoDB = async (bookingId: string, decodedToken: JwtPayload) => {
 	const payment = await PaymentModel.findOne({ booking: bookingId })
 	if (!payment) {
 		throw new AppError(
@@ -53,20 +55,43 @@ const initPaymentIntoDB = async (bookingId: string) => {
 		)
 	}
 	const booking = await BookingModel.findById(payment.booking)
+		.populate('user', 'name email phone address')
+		.populate('tour', 'title')
+		.populate('payment')
+
+	if (!booking) {
+		throw new AppError(httpStatus.NOT_FOUND, 'Booking not found')
+	}
+
+	const bookingUser = booking.user as unknown as IUser
+	const isAdmin =
+		decodedToken.role === Role.ADMIN || decodedToken.role === Role.SUPER_ADMIN
+
+	if (!isAdmin && String(bookingUser._id) !== decodedToken.userId) {
+		throw new AppError(httpStatus.FORBIDDEN, 'Access denied')
+	}
 
 	if (payment.status === PAYMENT_STATUS.PAID) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Payment already completed.')
 	}
 
-	if (booking?.status === BOOKING_STATUS.COMPLETE) {
+	if (booking.status === BOOKING_STATUS.COMPLETE) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Booking is already confirmed.')
 	}
 
 	// SSL Commerz payment
-	const userAddress = (booking?.user as any).address
-	const userEmail = (booking?.user as any).email
-	const userPhoneNumber = (booking?.user as any).phone
-	const userName = (booking?.user as any).name
+	const userAddress = bookingUser.address
+	const userEmail = bookingUser.email
+	const userPhoneNumber = bookingUser.phone
+	const userName = bookingUser.name
+
+	if (!userAddress || !userPhoneNumber) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			'Please Update Your Profile to Pay for this Booking',
+		)
+	}
+
 	const sslPayload: ISSlCommerz = {
 		address: userAddress,
 		email: userEmail,

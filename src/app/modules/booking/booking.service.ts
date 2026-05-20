@@ -133,7 +133,9 @@ const getUserBookingFromDB = async (
 	query: Record<string, string>,
 ) => {
 	const queryBuilder = new QueryBuilder(
-		BookingModel.find({ user: userId }),
+		BookingModel.find({ user: userId })
+			.populate('tour', 'title slug images location costFrom startDate endDate')
+			.populate('payment', 'transactionId status amount invoiceUrl'),
 		query,
 	)
 	const bookings = queryBuilder.filter().sort().fields().paginate()
