@@ -2,7 +2,11 @@
 import httpStatus from 'http-status-codes'
 import AppError from '../../errorHelpers/AppError'
 import { UserModel } from '../user/user.model'
-import { BOOKING_STATUS, IBooking } from './booking.interface'
+import {
+	BOOKING_STATUS,
+	IBooking,
+	IUpdateBookingStatusPayload,
+} from './booking.interface'
 import { BookingModel } from './booking.model'
 import { PaymentModel } from '../payment/payment.model'
 import { PAYMENT_STATUS } from '../payment/payment.interface'
@@ -11,6 +15,39 @@ import { SSLService } from '../sslCommerz/sslCommerz.service'
 import { ISSlCommerz } from '../sslCommerz/sslCommerz.interface'
 import { getTransactionId } from '../../utils/getTransactionId'
 import { QueryBuilder } from '../../utils/QueryBuilder'
+import { JwtPayload } from 'jsonwebtoken'
+import { Role } from '../user/user.interface'
+
+const isAdminRole = (role?: string) =>
+	role === Role.ADMIN || role === Role.SUPER_ADMIN
+
+const getBookingUserId = (bookingUser: any) =>
+	bookingUser?._id ? String(bookingUser._id) : String(bookingUser)
+
+const assertBookingAccess = (bookingUser: any, decodedUser: JwtPayload) => {
+	if (
+		!isAdminRole(decodedUser.role) &&
+		getBookingUserId(bookingUser) !== decodedUser.userId
+	) {
+		throw new AppError(httpStatus.FORBIDDEN, 'Access denied')
+	}
+}
+
+const assertAdminBookingStatusAccess = (decodedUser: JwtPayload) => {
+	if (!isAdminRole(decodedUser.role)) {
+		throw new AppError(httpStatus.FORBIDDEN, 'Access denied')
+	}
+}
+
+const populateBookingDetails = (query: any) =>
+	query
+		.populate('user', 'name email phone address picture role')
+		.populate(
+			'tour',
+			'title slug images location costFrom startDate endDate departureLocation arrivalLocation',
+		)
+		.populate('payment', 'transactionId status amount invoiceUrl')
+		.populate('guide', 'name email phone picture role')
 
 const createBookingIntoDB = async (
 	payload: Partial<IBooking>,
@@ -149,11 +186,41 @@ const getUserBookingFromDB = async (
 		meta,
 	}
 }
-const getSingleBookingFromDB = async () => {
-	return null
+const getSingleBookingFromDB = async (
+	bookingId: string,
+	decodedUser: JwtPayload,
+) => {
+	const booking = await populateBookingDetails(BookingModel.findById(bookingId))
+
+	if (!booking) {
+		throw new AppError(httpStatus.NOT_FOUND, 'Booking not found')
+	}
+
+	assertBookingAccess(booking.user, decodedUser)
+
+	return booking
 }
-const updateBookingStatusIntoDB = async () => {
-	return null
+const updateBookingStatusIntoDB = async (
+	bookingId: string,
+	payload: IUpdateBookingStatusPayload,
+	decodedUser: JwtPayload,
+) => {
+	assertAdminBookingStatusAccess(decodedUser)
+
+	const booking = await BookingModel.findById(bookingId)
+	if (!booking) {
+		throw new AppError(httpStatus.NOT_FOUND, 'Booking not found')
+	}
+
+	const updatedBooking = await populateBookingDetails(
+		BookingModel.findByIdAndUpdate(
+			bookingId,
+			{ status: payload.status },
+			{ new: true, runValidators: true },
+		),
+	)
+
+	return updatedBooking
 }
 
 export const BookingService = {

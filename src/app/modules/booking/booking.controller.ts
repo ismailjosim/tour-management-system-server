@@ -55,7 +55,12 @@ const getUserBookings = catchAsync(
 )
 const getSingleBooking = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await BookingService.getSingleBookingFromDB()
+		const decodedToken = req.user as JwtPayload
+		const { bookingId } = req.params
+		const result = await BookingService.getSingleBookingFromDB(
+			bookingId,
+			decodedToken,
+		)
 
 		sendResponse(res, {
 			success: true,
@@ -67,7 +72,13 @@ const getSingleBooking = catchAsync(
 )
 const updateBookingStatus = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await BookingService.updateBookingStatusIntoDB()
+		const decodedToken = req.user as JwtPayload
+		const { bookingId } = req.params
+		const result = await BookingService.updateBookingStatusIntoDB(
+			bookingId,
+			req.body,
+			decodedToken,
+		)
 
 		sendResponse(res, {
 			success: true,

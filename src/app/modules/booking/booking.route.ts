@@ -34,7 +34,7 @@ router.get(
 
 router.patch(
 	'/:bookingId/status',
-	checkAuth(...Object.values(Role)),
+	checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
 	validateSchema(BookingValidation.updateBookingStatusSchema),
 	BookingController.updateBookingStatus,
 )

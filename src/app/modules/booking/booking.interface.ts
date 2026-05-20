@@ -12,8 +12,14 @@ export enum BOOKING_STATUS {
 export interface IBooking {
 	user: Types.ObjectId
 	tour: Types.ObjectId
+	guide?: Types.ObjectId
 	payment?: Types.ObjectId
 	guestCount: number
 	status: BOOKING_STATUS
 	createdAt?: Date
+	updatedAt?: Date
+}
+
+export interface IUpdateBookingStatusPayload {
+	status: BOOKING_STATUS
 }
