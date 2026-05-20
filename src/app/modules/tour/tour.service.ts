@@ -1,19 +1,19 @@
-import { QueryBuilder } from './../../utils/QueryBuilder'
-import httpStatus from 'http-status-codes'
-import AppError from '../../errorHelpers/AppError'
-import { ITour, ITourType } from './tour.interface'
-import { TourModel, TourTypeModel } from './tour.model'
-import { tourSearchableFields, tourTypeSearchableFields } from './tour.constant'
-import { deleteImageFromCloudinary } from '../../configs/cloudinary.config'
+import { QueryBuilder } from './../../utils/QueryBuilder';
+import httpStatus from 'http-status-codes';
+import AppError from '../../errorHelpers/AppError';
+import { ITour, ITourType } from './tour.interface';
+import { TourModel, TourTypeModel } from './tour.model';
+import { tourSearchableFields, tourTypeSearchableFields } from './tour.constant';
+import { deleteImageFromCloudinary } from '../../configs/cloudinary.config';
 
 const createTourIntoDB = async (payload: ITour) => {
-	const isTourExist = await TourModel.findOne({ title: payload.title })
-	if (isTourExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour is already exist')
-	}
-	const tour = await TourModel.create(payload)
-	return tour
-}
+  const isTourExist = await TourModel.findOne({ title: payload.title });
+  if (isTourExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This Tour is already exist');
+  }
+  const tour = await TourModel.create(payload);
+  return tour;
+};
 
 /*
 
@@ -72,198 +72,178 @@ const getAllTourFromDB = async (query: Record<string, string>) => {
 */
 
 const getAllTourFromDB = async (query: Record<string, string>) => {
-	const queryBuilder = new QueryBuilder(
-		TourModel.find().populate('tourType', 'name').populate('division', 'name'),
-		query,
-	)
-	const tours = queryBuilder
-		.search(tourSearchableFields)
-		.filter()
-		.sort()
-		.fields()
-		.paginate()
+  const queryBuilder = new QueryBuilder(
+    TourModel.find().populate('tourType', 'name').populate('division', 'name'),
+    query
+  );
+  const tours = queryBuilder.search(tourSearchableFields).filter().sort().fields().paginate();
 
-	const [data, meta] = await Promise.all([
-		tours.build(),
-		queryBuilder.getMeta(),
-	])
+  const [data, meta] = await Promise.all([tours.build(), queryBuilder.getMeta()]);
 
-	return {
-		data,
-		meta,
-	}
-}
+  return {
+    data,
+    meta,
+  };
+};
 
 const getSingleTourFromDB = async (slug: string) => {
-	const tour = await TourModel.findOne({ slug })
-	return tour
-}
+  const tour = await TourModel.findOne({ slug });
+  return tour;
+};
 
 const updateTourIntoDB = async (id: string, payload: ITour) => {
-	const isTourExist = await TourModel.findById(id)
-	if (!isTourExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist')
-	}
+  const isTourExist = await TourModel.findById(id);
+  if (!isTourExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Tour not exist');
+  }
 
-	//* process one: add new image with existing image
-	if (
-		payload.images &&
-		payload.images.length > 0 &&
-		isTourExist.images &&
-		isTourExist.images.length > 0
-	) {
-		payload.images = [...payload.images, ...isTourExist.images]
-	}
+  //* process one: add new image with existing image
+  if (
+    payload.images &&
+    payload.images.length > 0 &&
+    isTourExist.images &&
+    isTourExist.images.length > 0
+  ) {
+    payload.images = [...payload.images, ...isTourExist.images];
+  }
 
-	//* process two: add image also remove images from our DB
-	if (
-		payload.deleteImage &&
-		payload.deleteImage.length > 0 &&
-		isTourExist.images &&
-		isTourExist.images.length > 0
-	) {
-		const restDBImages = isTourExist.images.filter(
-			(imgUrl) => !payload.deleteImage?.includes(imgUrl),
-		)
-		// remove exist old image from payload
-		const updatedPayloadImages = (payload?.images || [])
-			.filter((imgUrl) => !payload.deleteImage?.includes(imgUrl))
-			.filter((imgUrl) => !restDBImages?.includes(imgUrl))
+  //* process two: add image also remove images from our DB
+  if (
+    payload.deleteImage &&
+    payload.deleteImage.length > 0 &&
+    isTourExist.images &&
+    isTourExist.images.length > 0
+  ) {
+    const restDBImages = isTourExist.images.filter(
+      (imgUrl) => !payload.deleteImage?.includes(imgUrl)
+    );
+    // remove exist old image from payload
+    const updatedPayloadImages = (payload?.images || [])
+      .filter((imgUrl) => !payload.deleteImage?.includes(imgUrl))
+      .filter((imgUrl) => !restDBImages?.includes(imgUrl));
 
-		payload.images = [...restDBImages, ...updatedPayloadImages]
-	}
-	//* 3. Perform the update
-	const tour = await TourModel.findByIdAndUpdate(id, payload, {
-		new: true,
-		runValidators: true,
-	})
+    payload.images = [...restDBImages, ...updatedPayloadImages];
+  }
+  //* 3. Perform the update
+  const tour = await TourModel.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
 
-	if (
-		payload.deleteImage &&
-		payload.deleteImage.length > 0 &&
-		isTourExist.images &&
-		isTourExist.images.length > 0
-	) {
-		await Promise.all(
-			payload.deleteImage.map((url) =>
-				deleteImageFromCloudinary(url).catch((error) => {
-					console.error(`❌ Failed to delete image: ${url}`, error)
-				}),
-			),
-		)
-	}
+  if (
+    payload.deleteImage &&
+    payload.deleteImage.length > 0 &&
+    isTourExist.images &&
+    isTourExist.images.length > 0
+  ) {
+    await Promise.all(
+      payload.deleteImage.map((url) =>
+        deleteImageFromCloudinary(url).catch((error) => {
+          console.error(`❌ Failed to delete image: ${url}`, error);
+        })
+      )
+    );
+  }
 
-	return tour
-}
+  return tour;
+};
 
 const deleteTourFromDB = async (id: string) => {
-	const isTourTypeExist = await TourModel.findById(id)
-	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist')
-	}
+  const isTourTypeExist = await TourModel.findById(id);
+  if (!isTourTypeExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Tour is not exist');
+  }
 
-	const tour = await TourModel.findByIdAndDelete(id)
-	return tour
-}
+  const tour = await TourModel.findByIdAndDelete(id);
+  return tour;
+};
 
 // All tour Type services
 const createTourTypeIntoDB = async (payload: ITourType) => {
-	const { name } = payload
-	const isTourTypeExist = await TourTypeModel.findOne({ name })
+  const { name } = payload;
+  const isTourTypeExist = await TourTypeModel.findOne({ name });
 
-	if (isTourTypeExist) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			'This Tour Type is already exist',
-		)
-	}
-	const tourType = await TourTypeModel.create({ name })
+  if (isTourTypeExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is already exist');
+  }
+  const tourType = await TourTypeModel.create({ name });
 
-	return tourType
-}
+  return tourType;
+};
 
 const getAllTourTypeFromDB = async (query: Record<string, string>) => {
-	const queryBuilder = new QueryBuilder(TourTypeModel.find(), query)
-	const tourType = queryBuilder
-		.search(tourTypeSearchableFields)
-		.filter()
-		.sort()
-		.fields()
-		.paginate()
+  const queryBuilder = new QueryBuilder(TourTypeModel.find(), query);
+  const tourType = queryBuilder
+    .search(tourTypeSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
 
-	const [data, meta] = await Promise.all([
-		tourType.build(),
-		queryBuilder.getMeta(),
-	])
+  const [data, meta] = await Promise.all([tourType.build(), queryBuilder.getMeta()]);
 
-	return {
-		data,
-		meta,
-	}
-}
+  return {
+    data,
+    meta,
+  };
+};
 
 const getSingleTourTypeFromDB = async (id: string) => {
-	const data = await TourTypeModel.findById(id)
-	return data
-}
+  const data = await TourTypeModel.findById(id);
+  return data;
+};
 
 const updateTourTypeIntoDB = async (id: string, payload: ITourType) => {
-	const isTourTypeExist = await TourTypeModel.findById(id)
-	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
-	}
-	if (payload.name) {
-		if (isTourTypeExist.name === payload.name) {
-			throw new AppError(
-				httpStatus.BAD_REQUEST,
-				'Tour Type is similar to the stored Value',
-			)
-		}
-	}
-	// OPTIONAL: prevent updating to a name that already exists for *another* tour type
-	// This is a more common scenario for unique names
-	const existingTourTypeWithName = await TourTypeModel.findOne({
-		name: payload.name,
-	})
-	if (
-		existingTourTypeWithName &&
-		existingTourTypeWithName._id.toString() !== id
-	) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			'Another Tour Type with this name already exists. Please choose a different name.',
-		)
-	}
+  const isTourTypeExist = await TourTypeModel.findById(id);
+  if (!isTourTypeExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist');
+  }
+  if (payload.name) {
+    if (isTourTypeExist.name === payload.name) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Tour Type is similar to the stored Value');
+    }
+  }
+  // OPTIONAL: prevent updating to a name that already exists for *another* tour type
+  // This is a more common scenario for unique names
+  const existingTourTypeWithName = await TourTypeModel.findOne({
+    name: payload.name,
+  });
+  if (existingTourTypeWithName && existingTourTypeWithName._id.toString() !== id) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Another Tour Type with this name already exists. Please choose a different name.'
+    );
+  }
 
-	// 3. Perform the update
-	const tour = await TourTypeModel.findByIdAndUpdate(id, payload, {
-		new: true,
-		runValidators: true,
-	})
+  // 3. Perform the update
+  const tour = await TourTypeModel.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
 
-	return tour
-}
+  return tour;
+};
 
 const deleteTourTypeFromDB = async (id: string) => {
-	const isTourTypeExist = await TourTypeModel.findById(id)
-	if (!isTourTypeExist) {
-		throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist')
-	}
+  const isTourTypeExist = await TourTypeModel.findById(id);
+  if (!isTourTypeExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This Tour Type is not exist');
+  }
 
-	const tour = await TourTypeModel.findByIdAndDelete(id)
+  const tour = await TourTypeModel.findByIdAndDelete(id);
 
-	return tour
-}
+  return tour;
+};
 
 export const TourServices = {
-	createTourIntoDB,
-	getAllTourFromDB,
-	getSingleTourFromDB,
-	updateTourIntoDB,
-	deleteTourFromDB,
-	createTourTypeIntoDB,
-	getAllTourTypeFromDB,
-	getSingleTourTypeFromDB,
-	updateTourTypeIntoDB,
-	deleteTourTypeFromDB,
-}
+  createTourIntoDB,
+  getAllTourFromDB,
+  getSingleTourFromDB,
+  updateTourIntoDB,
+  deleteTourFromDB,
+  createTourTypeIntoDB,
+  getAllTourTypeFromDB,
+  getSingleTourTypeFromDB,
+  updateTourTypeIntoDB,
+  deleteTourTypeFromDB,
+};

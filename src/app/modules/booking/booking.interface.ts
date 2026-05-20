@@ -1,25 +1,25 @@
 // Booking flow => user login -> booking (pending) -> payment(unpaid) -> SSLCommerz -> booking status update -> confirm -> payment update -> confirm
 
-import { Types } from 'mongoose'
+import { Types } from 'mongoose';
 
 export enum BOOKING_STATUS {
-	PENDING = 'PENDING',
-	CANCEL = 'CANCEL',
-	COMPLETE = 'COMPLETE',
-	FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  CANCEL = 'CANCEL',
+  COMPLETE = 'COMPLETE',
+  FAILED = 'FAILED',
 }
 
 export interface IBooking {
-	user: Types.ObjectId
-	tour: Types.ObjectId
-	guide?: Types.ObjectId
-	payment?: Types.ObjectId
-	guestCount: number
-	status: BOOKING_STATUS
-	createdAt?: Date
-	updatedAt?: Date
+  user: Types.ObjectId;
+  tour: Types.ObjectId;
+  guide?: Types.ObjectId;
+  payment?: Types.ObjectId;
+  guestCount: number;
+  status: BOOKING_STATUS;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IUpdateBookingStatusPayload {
-	status: BOOKING_STATUS
+  status: BOOKING_STATUS;
 }

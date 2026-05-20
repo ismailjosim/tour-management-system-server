@@ -1,1 +1,1 @@
-export const PAYMENT_STATUS = ['pending', 'confirmed', 'cancelled'] as const
+export const PAYMENT_STATUS = ['pending', 'confirmed', 'cancelled'] as const;

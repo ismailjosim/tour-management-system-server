@@ -1,9 +1,9 @@
-import express from 'express'
-import { OTPController } from './otp.controller'
+import express from 'express';
+import { OTPController } from './otp.controller';
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/send', OTPController.sendOTP)
-router.post('/verify', OTPController.verifyOTP)
+router.post('/send', OTPController.sendOTP);
+router.post('/verify', OTPController.verifyOTP);
 
-export const OTPRoutes = router
+export const OTPRoutes = router;

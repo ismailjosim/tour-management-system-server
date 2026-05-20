@@ -1,11 +1,9 @@
-import mongoose from 'mongoose'
-import { TGenericErrorResponse } from '../interfaces/error.types'
+import mongoose from 'mongoose';
+import { TGenericErrorResponse } from '../interfaces/error.types';
 
-export const handleCastError = (
-	err: mongoose.Error.CastError,
-): TGenericErrorResponse => {
-	return {
-		statusCode: 400,
-		message: `Invalid MongoDB: ${err.path}: ${err.value}`,
-	}
-}
+export const handleCastError = (err: mongoose.Error.CastError): TGenericErrorResponse => {
+  return {
+    statusCode: 400,
+    message: `Invalid MongoDB: ${err.path}: ${err.value}`,
+  };
+};

@@ -1,9 +1,9 @@
-import { Types } from 'mongoose'
+import { Types } from 'mongoose';
 
 export interface IReview {
-	user: Types.ObjectId
-	tour: Types.ObjectId
-	rating: number
-	comments: string
-	createdAt?: Date
+  user: Types.ObjectId;
+  tour: Types.ObjectId;
+  rating: number;
+  comments: string;
+  createdAt?: Date;
 }
