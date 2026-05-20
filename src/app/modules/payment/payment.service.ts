@@ -13,7 +13,19 @@ import { Role } from '../user/user.interface'
 import { ITour } from '../tour/tour.interface'
 import { sendMail } from '../../utils/sendEmail'
 import { uploadBufferToCloudinary } from '../../configs/cloudinary.config'
-import { JwtPayload } from 'jsonwebtoken'
+
+const isAdminRole = (role: Role) =>
+	role === Role.ADMIN || role === Role.SUPER_ADMIN
+
+const assertBookingOwnerOrAdmin = (
+	bookingUserId: string,
+	userId: string,
+	role: Role,
+) => {
+	if (!isAdminRole(role) && bookingUserId !== userId) {
+		throw new AppError(httpStatus.FORBIDDEN, 'Access denied')
+	}
+}
 
 const getTransactionIdFromPayload = (payload: Record<string, string>) =>
 	payload.tran_id || payload.transactionId || payload.transaction_id
@@ -46,7 +58,11 @@ const assertPaymentMatchesGateway = (
 	}
 }
 
-const initPaymentIntoDB = async (bookingId: string, decodedToken: JwtPayload) => {
+const initPaymentIntoDB = async (
+	bookingId: string,
+	userId: string,
+	role: Role,
+) => {
 	const payment = await PaymentModel.findOne({ booking: bookingId })
 	if (!payment) {
 		throw new AppError(
@@ -64,12 +80,7 @@ const initPaymentIntoDB = async (bookingId: string, decodedToken: JwtPayload) =>
 	}
 
 	const bookingUser = booking.user as unknown as IUser
-	const isAdmin =
-		decodedToken.role === Role.ADMIN || decodedToken.role === Role.SUPER_ADMIN
-
-	if (!isAdmin && String(bookingUser._id) !== decodedToken.userId) {
-		throw new AppError(httpStatus.FORBIDDEN, 'Access denied')
-	}
+	assertBookingOwnerOrAdmin(String(bookingUser._id), userId, role)
 
 	if (payment.status === PAYMENT_STATUS.PAID) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Payment already completed.')
@@ -345,12 +356,24 @@ const cancelPaymentIntoDB = async (query: Record<string, string>) => {
 	}
 }
 
-const getInvoiceDownloadURLFromDB = async (id: string) => {
-	const payment = await PaymentModel.findById(id).select('invoiceUrl')
+const getInvoiceDownloadURLFromDB = async (
+	id: string,
+	userId: string,
+	role: Role,
+) => {
+	const payment = await PaymentModel.findById(id).select('invoiceUrl booking')
 
 	if (!payment) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'Payment Not Found')
 	}
+
+	const booking = await BookingModel.findById(payment.booking).select('user')
+	if (!booking) {
+		throw new AppError(httpStatus.NOT_FOUND, 'Booking not found')
+	}
+
+	assertBookingOwnerOrAdmin(String(booking.user), userId, role)
+
 	if (!payment.invoiceUrl) {
 		throw new AppError(httpStatus.BAD_REQUEST, 'InvoiceUrl Not Found')
 	}

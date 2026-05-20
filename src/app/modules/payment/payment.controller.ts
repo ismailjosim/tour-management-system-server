@@ -30,7 +30,8 @@ const initPayment = catchAsync(async (req: Request, res: Response) => {
 	const decodedToken = req.user as JwtPayload
 	const result = await PaymentService.initPaymentIntoDB(
 		bookingId as string,
-		decodedToken,
+		decodedToken.userId,
+		decodedToken.role,
 	)
 	sendResponse(res, {
 		statusCode: 201,
@@ -104,7 +105,12 @@ const cancelPayment = catchAsync(
 const getInvoiceDownloadURL = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const { paymentId } = req.params
-		const result = await PaymentService.getInvoiceDownloadURLFromDB(paymentId)
+		const decodedToken = req.user as JwtPayload
+		const result = await PaymentService.getInvoiceDownloadURLFromDB(
+			paymentId,
+			decodedToken.userId,
+			decodedToken.role,
+		)
 
 		sendResponse(res, {
 			success: true,
