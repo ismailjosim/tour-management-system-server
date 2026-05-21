@@ -4,9 +4,11 @@ import { Types } from 'mongoose';
 
 export enum BOOKING_STATUS {
   PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
   CANCEL = 'CANCEL',
   COMPLETE = 'COMPLETE',
   FAILED = 'FAILED',
+  REJECTED = 'REJECTED',
 }
 
 export interface IBooking {

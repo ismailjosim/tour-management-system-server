@@ -38,8 +38,7 @@ interface QueryMeta {
   totalPage: number;
 }
 
-const isAdminRole = (role?: string): boolean =>
-  role === Role.ADMIN || role === Role.SUPER_ADMIN;
+const isAdminRole = (role?: string): boolean => role === Role.ADMIN || role === Role.SUPER_ADMIN;
 
 const getBookingUserId = (bookingUser: BookingUserRef): string => {
   if (!bookingUser) return '';
@@ -58,10 +57,7 @@ const getBookingUserId = (bookingUser: BookingUserRef): string => {
   return '';
 };
 
-const assertBookingAccess = (
-  bookingUser: BookingUserRef,
-  decodedUser: AuthJwtPayload
-): void => {
+const assertBookingAccess = (bookingUser: BookingUserRef, decodedUser: AuthJwtPayload): void => {
   const bookingUserId = getBookingUserId(bookingUser);
 
   if (!isAdminRole(decodedUser.role) && bookingUserId !== decodedUser.userId) {
@@ -141,6 +137,8 @@ const createBookingIntoDB = async (
       throw new AppError(httpStatus.BAD_REQUEST, 'Tour start date and end date are required');
     }
 
+    let assignedGuideUserId: Types.ObjectId | string | undefined;
+
     if (payload.guide) {
       const { GuideModel } = await import('../guide/guide.model');
 
@@ -161,6 +159,8 @@ const createBookingIntoDB = async (
         );
       }
 
+      assignedGuideUserId = guide.user;
+
       /**
        * Booking.tour is usually an ObjectId reference.
        * So we cannot query `tour.startDate` directly inside BookingModel.
@@ -175,14 +175,14 @@ const createBookingIntoDB = async (
         .session(session)
         .lean();
 
-      const overlappingTourIds = overlappingTours.map(item => item._id);
+      const overlappingTourIds = overlappingTours.map((item) => item._id);
 
       if (overlappingTourIds.length > 0) {
         const hasConflict = await BookingModel.exists({
-          guide: payload.guide,
+          guide: assignedGuideUserId,
           tour: { $in: overlappingTourIds },
           status: {
-            $in: [BOOKING_STATUS.PENDING, BOOKING_STATUS.COMPLETE],
+            $in: [BOOKING_STATUS.PENDING, BOOKING_STATUS.IN_PROGRESS, BOOKING_STATUS.COMPLETE],
           },
         }).session(session);
 
@@ -203,6 +203,7 @@ const createBookingIntoDB = async (
         {
           ...payload,
           user: userId,
+          guide: assignedGuideUserId,
           status: BOOKING_STATUS.PENDING,
         },
       ],
@@ -291,6 +292,7 @@ const getUserBookingFromDB = async (
   const queryBuilder = new QueryBuilder(
     BookingModel.find({ user: userId })
       .populate('tour', 'title slug images location costFrom startDate endDate')
+      .populate('guide', 'name email phone picture role')
       .populate('payment', 'transactionId status amount invoiceUrl'),
     query
   );
@@ -305,7 +307,10 @@ const getUserBookingFromDB = async (
   };
 };
 
-const getSingleBookingFromDB = async (bookingId: string, decodedUser: AuthJwtPayload): Promise<IBooking | null> => {
+const getSingleBookingFromDB = async (
+  bookingId: string,
+  decodedUser: AuthJwtPayload
+): Promise<IBooking | null> => {
   if (!isValidObjectId(bookingId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Valid booking id is required');
   }

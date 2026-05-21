@@ -2,6 +2,7 @@ import express from 'express';
 import { GuideController } from './guide.controller';
 import validateSchema from '../../middlewares/validateRequest';
 import { GuideValidation } from './guide.validation';
+import { BookingValidation } from '../booking/booking.validation';
 import checkAuth from '../../middlewares/checkAuth';
 import { Role } from '../user/user.interface';
 import { multerUpload } from '../../configs/multer.config';
@@ -36,6 +37,13 @@ router.patch('/me/availability', checkAuth(Role.GUIDE), GuideController.updateMy
 router.get('/me/tours', checkAuth(Role.GUIDE), GuideController.getMyTours);
 
 router.get('/me/bookings', checkAuth(Role.GUIDE), GuideController.getMyBookings);
+
+router.patch(
+  '/me/bookings/:bookingId/status',
+  checkAuth(Role.GUIDE),
+  validateSchema(BookingValidation.updateBookingStatusSchema),
+  GuideController.updateMyBookingStatus
+);
 
 router.get('/me/bookings/:bookingId', checkAuth(Role.GUIDE), GuideController.getMyBookingDetails);
 

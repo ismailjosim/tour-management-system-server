@@ -8,6 +8,7 @@ import { IGuide, IGuideStatus } from './guide.interface';
 import { JwtPayload } from 'jsonwebtoken';
 import { Types } from 'mongoose';
 import AppError from '../../errorHelpers/AppError';
+import { BOOKING_STATUS } from '../booking/booking.interface';
 
 /**
  * ========================
@@ -112,13 +113,29 @@ const getMyBookingDetails = catchAsync(async (req: Request, res: Response) => {
   const decodedToken = req.user as JwtPayload;
   const result = await GuideService.getMyBookingDetailsFromDB(
     decodedToken.userId,
-    req.params.bookingId
+    req.params.bookingId as string
   );
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: 'Guide booking retrieved successfully',
+    data: result,
+  });
+});
+
+const updateMyBookingStatus = catchAsync(async (req: Request, res: Response) => {
+  const decodedToken = req.user as JwtPayload;
+  const result = await GuideService.updateMyBookingStatusInDB(
+    decodedToken.userId,
+    req.params.bookingId as string,
+    req.body.status as BOOKING_STATUS
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Guide booking status updated successfully',
     data: result,
   });
 });
@@ -276,6 +293,7 @@ export const GuideController = {
   getMyStats,
   getMyBookings,
   getMyBookingDetails,
+  updateMyBookingStatus,
   getMyUpcomingSchedule,
   getMyEarnings,
   getMyReviews,

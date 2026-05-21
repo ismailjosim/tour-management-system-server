@@ -42,8 +42,26 @@ const getTourId = (booking: any) => {
   return tour?._id ? String(tour._id) : String(tour);
 };
 
-const getAssignedGuideBookings = (userId: string) =>
-  bookingDetailsPopulate(BookingModel.find({ guide: userId })).sort('-createdAt');
+const getAssignedGuideFilter = async (userId: string) => {
+  const guideProfile = await GuideModel.findOne({ user: userId }).select('_id').lean();
+  const guideIds = [userId];
+
+  if (guideProfile?._id) {
+    guideIds.push(String(guideProfile._id));
+  }
+
+  return { guide: { $in: guideIds } };
+};
+
+const getAssignedGuideBookings = async (userId: string) => {
+  const filter = await getAssignedGuideFilter(userId);
+  return bookingDetailsPopulate(BookingModel.find(filter)).sort('-createdAt');
+};
+
+const getAssignedGuideBookingsLean = async (userId: string) => {
+  const filter = await getAssignedGuideFilter(userId);
+  return bookingDetailsPopulate(BookingModel.find(filter)).sort('-createdAt').lean();
+};
 
 // ========== USER / PUBLIC SERVICES ==========
 
@@ -205,7 +223,7 @@ const updateMyAvailabilityInDB = async (
 };
 
 const getMyToursFromDB = async (userId: string) => {
-  const bookings = await getAssignedGuideBookings(userId).lean();
+  const bookings = await getAssignedGuideBookingsLean(userId);
   const tours = new Map<string, any>();
 
   for (const booking of bookings) {
@@ -252,15 +270,13 @@ const getMyToursFromDB = async (userId: string) => {
 };
 
 const getMyStatsFromDB = async (userId: string) => {
-  const bookings = await getAssignedGuideBookings(userId).lean();
+  const bookings = await getAssignedGuideBookingsLean(userId);
   const now = new Date();
   const assignedTourIds = Array.from(
     new Set(bookings.map(getTourId).filter((tourId: string) => tourId !== 'undefined'))
   );
 
-  const reviews = assignedTourIds.length
-    ? await ReviewModel.find({ tour: { $in: assignedTourIds } }).lean()
-    : [];
+  const reviews = await ReviewModel.find({ guide: userId }).lean();
 
   const upcomingBookings = bookings.filter((booking: any) => {
     const startDate = booking.tour?.startDate;
@@ -298,7 +314,7 @@ const getMyBookingsFromDB = async (userId: string, query: Record<string, string>
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
-  const filter: Record<string, unknown> = { guide: userId };
+  const filter: Record<string, unknown> = await getAssignedGuideFilter(userId);
 
   if (query.status) {
     filter.status = query.status;
@@ -325,7 +341,38 @@ const getMyBookingsFromDB = async (userId: string, query: Record<string, string>
 
 const getMyBookingDetailsFromDB = async (userId: string, bookingId: string) => {
   const booking = await bookingDetailsPopulate(
-    BookingModel.findOne({ _id: bookingId, guide: userId })
+    BookingModel.findOne({ _id: bookingId, ...(await getAssignedGuideFilter(userId)) })
+  );
+
+  if (!booking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Assigned booking not found');
+  }
+
+  return booking;
+};
+
+const updateMyBookingStatusInDB = async (
+  userId: string,
+  bookingId: string,
+  status: BOOKING_STATUS
+) => {
+  const allowedGuideStatuses = [
+    BOOKING_STATUS.PENDING,
+    BOOKING_STATUS.IN_PROGRESS,
+    BOOKING_STATUS.COMPLETE,
+    BOOKING_STATUS.REJECTED,
+  ];
+
+  if (!allowedGuideStatuses.includes(status)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid guide booking status');
+  }
+
+  const booking = await bookingDetailsPopulate(
+    BookingModel.findOneAndUpdate(
+      { _id: bookingId, ...(await getAssignedGuideFilter(userId)) },
+      { status },
+      { new: true, runValidators: true }
+    )
   );
 
   if (!booking) {
@@ -336,7 +383,7 @@ const getMyBookingDetailsFromDB = async (userId: string, bookingId: string) => {
 };
 
 const getMyUpcomingScheduleFromDB = async (userId: string) => {
-  const bookings = await getAssignedGuideBookings(userId).lean();
+  const bookings = await getAssignedGuideBookingsLean(userId);
   const now = new Date();
 
   return bookings
@@ -356,7 +403,7 @@ const getMyUpcomingScheduleFromDB = async (userId: string) => {
 };
 
 const getMyEarningsFromDB = async (userId: string) => {
-  const bookings = await getAssignedGuideBookings(userId).lean();
+  const bookings = await getAssignedGuideBookingsLean(userId);
   const earningBookings = bookings.filter(isPaidCompletedBooking);
   const monthlyEarnings = new Map<string, number>();
 
@@ -395,7 +442,9 @@ const getMyEarningsFromDB = async (userId: string) => {
 };
 
 const getMyReviewsFromDB = async (userId: string) => {
-  const bookings = await BookingModel.find({ guide: userId }).select('tour').lean();
+  const bookings = await BookingModel.find(await getAssignedGuideFilter(userId))
+    .select('tour')
+    .lean();
   const assignedTourIds = Array.from(new Set(bookings.map((booking) => String(booking.tour))));
 
   if (!assignedTourIds.length) {
@@ -407,7 +456,7 @@ const getMyReviewsFromDB = async (userId: string) => {
     };
   }
 
-  const reviews = await ReviewModel.find({ tour: { $in: assignedTourIds } })
+  const reviews = await ReviewModel.find({ guide: userId })
     .populate('user', 'name email picture')
     .populate('tour', 'title slug')
     .sort('-createdAt')
@@ -415,12 +464,12 @@ const getMyReviewsFromDB = async (userId: string) => {
     .lean();
 
   const averageRating = reviews.length
-    ? reviews.reduce((total, review) => total + Number(review.rating ?? 0), 0) / reviews.length
+    ? reviews.reduce((total, review) => total + Number(review.guideRating ?? 0), 0) / reviews.length
     : 0;
 
   const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
     rating,
-    count: reviews.filter((review) => Number(review.rating) === rating).length,
+    count: reviews.filter((review) => Number(review.guideRating) === rating).length,
   }));
 
   return {
@@ -489,20 +538,48 @@ const getAvailableGuidesForTourFromDB = async (tourId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, 'Tour not found');
   }
 
+  if (!tour.startDate || !tour.endDate) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Tour start date and end date are required');
+  }
+
   // 2️⃣ Find all approved guides in the tour's division
   const guides = await GuideModel.find({
     division: tour.division,
     status: IGuideStatus.APPROVED,
   })
-    .populate('user', 'name email phone picture address role -_id')
+    .populate('user', 'name email phone picture address role')
     .populate('division', 'name -_id')
     .lean();
 
   // 3️⃣ Filter out guides with conflicting unavailable dates
   const tourStartDate = new Date(tour.startDate);
   const tourEndDate = new Date(tour.endDate);
+  const guideUserIds = guides.map((guide) => guide.user?._id).filter(Boolean);
+  const overlappingTours = await TourModel.find({
+    _id: { $ne: tourId },
+    startDate: { $lte: tourEndDate },
+    endDate: { $gte: tourStartDate },
+  })
+    .select('_id')
+    .lean();
+  const overlappingTourIds = overlappingTours.map((item) => item._id);
+  const bookedGuideIds =
+    overlappingTourIds.length > 0
+      ? await BookingModel.distinct('guide', {
+          guide: { $in: guideUserIds },
+          tour: { $in: overlappingTourIds },
+          status: {
+            $in: [BOOKING_STATUS.PENDING, BOOKING_STATUS.IN_PROGRESS, BOOKING_STATUS.COMPLETE],
+          },
+        })
+      : [];
+  const bookedGuideIdSet = new Set(bookedGuideIds.map((guideId) => String(guideId)));
 
   const availableGuides = guides.filter((guide) => {
+    if (bookedGuideIdSet.has(String(guide.user?._id))) {
+      return false;
+    }
+
     if (!guide.unavailableDates || guide.unavailableDates.length === 0) {
       return true;
     }
@@ -527,6 +604,7 @@ export const GuideService = {
   getMyStatsFromDB,
   getMyBookingsFromDB,
   getMyBookingDetailsFromDB,
+  updateMyBookingStatusInDB,
   getMyUpcomingScheduleFromDB,
   getMyEarningsFromDB,
   getMyReviewsFromDB,

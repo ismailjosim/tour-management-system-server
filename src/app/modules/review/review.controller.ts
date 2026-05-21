@@ -21,7 +21,7 @@ const createReview = catchAsync(async (req: Request, res: Response, next: NextFu
 const getSpecificTourReviews = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await ReviewService.getSpecificTourReviewsFromDB(
-      req.params.tourId,
+      req.params.tourId as string,
       req.query as Record<string, string>
     );
 

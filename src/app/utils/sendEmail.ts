@@ -52,12 +52,10 @@ export const sendMail = async ({
         contentType: attachment.contentType,
       })),
     });
-
   } catch (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _error: any
   ) {
-
     throw new AppError(401, 'Email Error: Authentication failed or SMTP configuration issue.');
   }
 };

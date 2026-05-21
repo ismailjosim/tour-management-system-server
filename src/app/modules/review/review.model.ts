@@ -13,13 +13,29 @@ const reviewSchema = new Schema<IReview>(
       ref: 'Tour',
       required: true,
     },
+    guide: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     rating: {
       type: Number,
       required: true,
+      min: 1,
+      max: 5,
     },
     comments: {
       type: String,
       required: true,
+      trim: true,
+    },
+    guideRating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+    guideComments: {
+      type: String,
+      trim: true,
     },
   },
   { timestamps: true, versionKey: false }

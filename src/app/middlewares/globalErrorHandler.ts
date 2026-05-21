@@ -18,7 +18,6 @@ export const globalErrorHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-
   // ✅ Delete Single File if present
   if (req.file?.path) {
     try {
