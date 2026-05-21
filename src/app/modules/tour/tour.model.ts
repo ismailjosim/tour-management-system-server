@@ -1,91 +1,91 @@
 // ========================================
 // tour.model.ts
 // ========================================
-import { model, Schema } from 'mongoose'
-import { ITour, ITourType, ILocationInMap } from './tour.interface'
+import { model, Schema } from 'mongoose';
+import { ITour, ITourType, ILocationInMap } from './tour.interface';
 
 const tourTypeSchema = new Schema<ITourType>(
-	{
-		name: { type: String, require: true, unique: true },
-	},
-	{
-		timestamps: true,
-		versionKey: false,
-	},
-)
+  {
+    name: { type: String, require: true, unique: true },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 
 const locationInMapSchema = new Schema<ILocationInMap>(
-	{
-		title: { type: String, required: true },
-		lat: { type: Number, required: true },
-		lng: { type: Number, required: true },
-	},
-	{ _id: false },
-)
+  {
+    title: { type: String, required: true },
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+  },
+  { _id: false }
+);
 
 const tourSchema = new Schema<ITour>(
-	{
-		title: { type: String, required: true },
-		slug: { type: String, unique: true },
-		description: { type: String },
-		images: { type: [String], default: [] },
-		location: { type: String },
-		departureLocation: { type: String, default: 'default' },
-		arrivalLocation: { type: String, default: 'default' },
-		departureLocationInMap: { type: locationInMapSchema, default: null },
-		arrivalLocationInMap: { type: locationInMapSchema, default: null },
-		costFrom: { type: Number },
-		startDate: { type: Date },
-		endDate: { type: Date },
-		included: { type: [String], default: [] },
-		excluded: { type: [String], default: [] },
-		amenities: { type: [String], default: [] },
-		tourPlan: { type: [String], default: [] },
-		maxGuest: { type: Number },
-		minAge: { type: Number },
-		tourType: { type: Schema.Types.ObjectId, ref: 'TourType', required: true },
-		division: { type: Schema.Types.ObjectId, ref: 'Division', required: true },
-	},
-	{
-		timestamps: true,
-		versionKey: false,
-	},
-)
+  {
+    title: { type: String, required: true },
+    slug: { type: String, unique: true },
+    description: { type: String },
+    images: { type: [String], default: [] },
+    location: { type: String },
+    departureLocation: { type: String, default: 'default' },
+    arrivalLocation: { type: String, default: 'default' },
+    departureLocationInMap: { type: locationInMapSchema, default: null },
+    arrivalLocationInMap: { type: locationInMapSchema, default: null },
+    costFrom: { type: Number },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    included: { type: [String], default: [] },
+    excluded: { type: [String], default: [] },
+    amenities: { type: [String], default: [] },
+    tourPlan: { type: [String], default: [] },
+    maxGuest: { type: Number },
+    minAge: { type: Number },
+    tourType: { type: Schema.Types.ObjectId, ref: 'TourType', required: true },
+    division: { type: Schema.Types.ObjectId, ref: 'Division', required: true },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 
 tourSchema.pre('save', async function (next) {
-	if (this.isModified('title')) {
-		const baseSlug = this.title.toLowerCase().split(' ').join('-')
-		let slug = `${baseSlug}`
+  if (this.isModified('title')) {
+    const baseSlug = this.title.toLowerCase().split(' ').join('-');
+    let slug = `${baseSlug}`;
 
-		let counter = 0
-		while (await TourModel.exists({ slug })) {
-			slug = `${baseSlug}-${counter++}`
-		}
+    let counter = 0;
+    while (await TourModel.exists({ slug })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
 
-		this.slug = slug
-	}
-	next()
-})
+    this.slug = slug;
+  }
+  next();
+});
 
 tourSchema.pre('findOneAndUpdate', async function (next) {
-	const tour = this.getUpdate() as Partial<ITour>
+  const tour = this.getUpdate() as Partial<ITour>;
 
-	if (tour.title) {
-		const baseSlug = tour.title.toLowerCase().split(' ').join('-')
-		let slug = `${baseSlug}`
+  if (tour.title) {
+    const baseSlug = tour.title.toLowerCase().split(' ').join('-');
+    let slug = `${baseSlug}`;
 
-		let counter = 0
-		while (await TourModel.exists({ slug })) {
-			slug = `${baseSlug}-${counter++}`
-		}
+    let counter = 0;
+    while (await TourModel.exists({ slug })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
 
-		tour.slug = slug
-	}
+    tour.slug = slug;
+  }
 
-	this.setUpdate(tour)
+  this.setUpdate(tour);
 
-	next()
-})
+  next();
+});
 
-export const TourTypeModel = model<ITourType>('TourType', tourTypeSchema)
-export const TourModel = model<ITour>('Tour', tourSchema)
+export const TourTypeModel = model<ITourType>('TourType', tourTypeSchema);
+export const TourModel = model<ITour>('Tour', tourSchema);

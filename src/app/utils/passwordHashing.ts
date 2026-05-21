@@ -1,13 +1,13 @@
-import bcrypt from 'bcryptjs'
-import { environmentVariables } from '../configs/env'
+import bcrypt from 'bcryptjs';
+import { environmentVariables } from '../configs/env';
 
 const passwordHashing = async (password: string) => {
-	const hashedPassword = await bcrypt.hash(
-		password,
-		Number(environmentVariables.BCRYPT_SALT_ROUND),
-	)
+  const hashedPassword = await bcrypt.hash(
+    password,
+    Number(environmentVariables.BCRYPT_SALT_ROUND)
+  );
 
-	return hashedPassword
-}
+  return hashedPassword;
+};
 
-export default passwordHashing
+export default passwordHashing;
