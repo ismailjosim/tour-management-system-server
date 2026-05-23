@@ -53,11 +53,6 @@ const getAssignedGuideFilter = async (userId: string) => {
   return { guide: { $in: guideIds } };
 };
 
-const getAssignedGuideBookings = async (userId: string) => {
-  const filter = await getAssignedGuideFilter(userId);
-  return bookingDetailsPopulate(BookingModel.find(filter)).sort('-createdAt');
-};
-
 const getAssignedGuideBookingsLean = async (userId: string) => {
   const filter = await getAssignedGuideFilter(userId);
   return bookingDetailsPopulate(BookingModel.find(filter)).sort('-createdAt').lean();

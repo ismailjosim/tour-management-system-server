@@ -8,24 +8,46 @@ import passport from 'passport';
 import expressSession from 'express-session';
 import './app/configs/passport';
 import { environmentVariables } from './app/configs/env';
+import {
+  createRateLimiter,
+  lightweightCompression,
+  securityHeaders,
+} from './app/middlewares/security';
+import { isProductionRuntime } from './app/utils/setCookie';
 
 const app: Application = express();
+const isProduction = isProductionRuntime();
+
+app.set('trust proxy', 1);
 
 // parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(securityHeaders);
+app.use(lightweightCompression);
+app.use(
+  createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    keyPrefix: 'global',
+  })
+);
 
 app.use(
   expressSession({
     secret: environmentVariables.EXPRESS_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    },
   })
 );
 app.use(passport.initialize());
 app.use(passport.session());
-app.set('trust proxy', 1);
 app.use(
   cors({
     origin: environmentVariables.FRONTEND_URL,

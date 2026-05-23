@@ -195,7 +195,7 @@ const getPublicGuides = catchAsync(async (req: Request, res: Response) => {
  */
 // Approve or reject guide
 const approveOrRejectGuide = catchAsync(async (req: Request, res: Response) => {
-  const { guideId } = req.params;
+  const guideId = req.params.guideId as string;
   const { status } = req.query;
   const decodedToken = req.user as JwtPayload;
 
@@ -233,7 +233,7 @@ const getAllGuides = catchAsync(async (req: Request, res: Response) => {
 
 // Get single guide details
 const getSingleGuide = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const result = await GuideService.getSingleGuideFromDB(id);
   sendResponse(res, {
     success: true,
@@ -245,7 +245,7 @@ const getSingleGuide = catchAsync(async (req: Request, res: Response) => {
 
 // Update guide (admin)
 const updateGuide = catchAsync(async (req: Request, res: Response) => {
-  const { guideId } = req.params;
+  const guideId = req.params.guideId as string;
   const result = await GuideService.updateGuideInDB(guideId, req.body);
   sendResponse(res, {
     success: true,
@@ -257,7 +257,7 @@ const updateGuide = catchAsync(async (req: Request, res: Response) => {
 
 // Delete guide
 const deleteGuide = catchAsync(async (req: Request, res: Response) => {
-  const { guideId } = req.params;
+  const guideId = req.params.guideId as string;
   const result = await GuideService.deleteGuideFromDB(guideId);
   sendResponse(res, {
     success: true,
@@ -269,7 +269,7 @@ const deleteGuide = catchAsync(async (req: Request, res: Response) => {
 
 // Get available guides for a specific tour
 const getAvailableGuidesForTour = catchAsync(async (req: Request, res: Response) => {
-  const { tourId } = req.params;
+  const tourId = req.params.tourId as string;
   const result = await GuideService.getAvailableGuidesForTourFromDB(tourId);
   sendResponse(res, {
     success: true,

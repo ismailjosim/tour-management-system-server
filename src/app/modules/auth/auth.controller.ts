@@ -6,11 +6,12 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 import AppError from '../../errorHelpers/AppError';
-import { setAuthCookie } from '../../utils/setCookie';
+import { authCookieOptions, setAuthCookie } from '../../utils/setCookie';
 import { JwtPayload } from 'jsonwebtoken';
 import { createUserToken } from '../../utils/userTokens';
 import { environmentVariables } from '../../configs/env';
 import passport from 'passport';
+import { verifyToken } from '../../utils/jwt';
 
 // googleCallbackController
 const googleCallbackController = catchAsync(
@@ -64,8 +65,6 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
       statusCode: httpStatus.CREATED,
       message: 'User login successfully',
       data: {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
         user: userWithoutPassword,
       },
     });
@@ -95,33 +94,22 @@ const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: N
     success: true,
     statusCode: httpStatus.CREATED,
     message: 'New Access Token Generate successfully',
-    data: {
-      accessToken: loginInfo.accessToken,
-    },
+    data: null,
   });
 });
 
 // user logout
 const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  // ✅ Clear access token cookie
-  const isProduction = environmentVariables.NODE_ENV === 'production';
+  const cookieOptions = authCookieOptions();
 
   res.clearCookie('accessToken', {
-    httpOnly: true,
-    secure: isProduction, // ✅ Set to true in production (HTTPS)
-    sameSite: isProduction ? 'none' : 'lax',
-    path: '/', // ✅ Ensure cookie is cleared from all paths
+    ...cookieOptions,
   });
 
-  // ✅ Clear refresh token cookie
   res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    path: '/', // ✅ Ensure cookie is cleared from all paths
+    ...cookieOptions,
   });
 
-  // ✅ Send logout confirmation
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -177,7 +165,16 @@ const forgotPassword = catchAsync(async (req: Request, res: Response, next: Next
 
 const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const payload = req.body;
-  const decodedToken = req.user;
+  const token = req.headers.authorization || payload.token;
+
+  if (!token) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Reset token is required');
+  }
+
+  const decodedToken = verifyToken(
+    token.startsWith('Bearer ') ? token.slice(7) : token,
+    environmentVariables.JWT_ACCESS_SECRET
+  );
 
   await AuthServices.resetPasswordIntoDB(payload, decodedToken as JwtPayload);
 

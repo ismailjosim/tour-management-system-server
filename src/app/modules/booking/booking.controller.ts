@@ -5,9 +5,12 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { BookingService } from './booking.service';
 import { JwtPayload } from 'jsonwebtoken';
+import { Role } from '../user/user.interface';
+
+type BookingAuthPayload = JwtPayload & { userId: string; role: Role };
 
 const createBooking = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const result = await BookingService.createBookingIntoDB(req.body, decodedToken.userId);
 
   sendResponse(res, {
@@ -28,7 +31,7 @@ const getAllBookings = catchAsync(async (req: Request, res: Response, next: Next
   });
 });
 const getUserBookings = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const query = req.query as Record<string, string>;
   const result = await BookingService.getUserBookingFromDB(decodedToken.userId, query);
 
@@ -40,7 +43,7 @@ const getUserBookings = catchAsync(async (req: Request, res: Response, next: Nex
   });
 });
 const getSingleBooking = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const bookingId = req.params.bookingId as string;
   const result = await BookingService.getSingleBookingFromDB(bookingId, decodedToken);
 
@@ -52,7 +55,7 @@ const getSingleBooking = catchAsync(async (req: Request, res: Response, next: Ne
   });
 });
 const updateBookingStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const bookingId = req.params.bookingId as string;
   const result = await BookingService.updateBookingStatusIntoDB(bookingId, req.body, decodedToken);
 
@@ -66,7 +69,7 @@ const updateBookingStatus = catchAsync(async (req: Request, res: Response, next:
 
 // NEW: Get pending guide approvals
 const getGuideApprovals = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const result = await BookingService.getGuideApprovalsFromDB(
     decodedToken.userId,
     req.query as Record<string, string>
@@ -83,7 +86,7 @@ const getGuideApprovals = catchAsync(async (req: Request, res: Response, next: N
 // NEW: Approve or reject booking
 const approveOrRejectBooking = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+    const decodedToken = req.user as BookingAuthPayload;
     const bookingId = req.params.bookingId as string;
     const result = await BookingService.approveOrRejectBookingIntoDB(
       bookingId,
@@ -102,7 +105,7 @@ const approveOrRejectBooking = catchAsync(
 
 // NEW: Mark tour as complete
 const markTourComplete = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const decodedToken = req.user as JwtPayload & { userId: string; role: any };
+  const decodedToken = req.user as BookingAuthPayload;
   const bookingId = req.params.bookingId as string;
   const result = await BookingService.markTourCompleteIntoDB(bookingId, req.body, decodedToken);
 

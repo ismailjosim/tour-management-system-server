@@ -3,7 +3,7 @@ import { IsActive, Role } from './user.interface';
 
 // Password schema with separate validation rules
 // Note: superRefine method return all error if every error is true
-const passwordSchema = z.string().superRefine((val, ctx) => {
+const passwordSchema = z.string().superRefine((val: string, ctx: z.RefinementCtx) => {
   if (val.length < 8) {
     ctx.addIssue({
       code: z.ZodIssueCode.too_small,

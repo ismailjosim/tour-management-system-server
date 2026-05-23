@@ -38,6 +38,15 @@ type AuthJwtPayload = JwtPayload & {
   role: Role;
 };
 
+type PopulatedPaymentStatus = {
+  status?: PAYMENT_STATUS;
+} | null;
+
+type PopulatedTourDates = {
+  startDate?: Date | string;
+  endDate?: Date | string;
+} | null;
+
 interface QueryMeta {
   total: number;
   page: number;
@@ -455,8 +464,8 @@ const approveOrRejectBookingIntoDB = async (
   };
 
   if (payload.approved) {
-    const paymentStatus = (booking.payment as any)?.status;
-    const tourStartDate = (booking.tour as any)?.startDate;
+    const paymentStatus = (booking.payment as PopulatedPaymentStatus)?.status;
+    const tourStartDate = (booking.tour as PopulatedTourDates)?.startDate;
     updateData.status =
       paymentStatus === PAYMENT_STATUS.PAID && hasTourStarted(tourStartDate)
         ? BOOKING_STATUS.IN_PROGRESS
@@ -507,7 +516,7 @@ const markTourCompleteIntoDB = async (
     }
   }
 
-  const paymentStatus = (booking.payment as any)?.status;
+  const paymentStatus = (booking.payment as PopulatedPaymentStatus)?.status;
   if (paymentStatus !== PAYMENT_STATUS.PAID) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Tour can only be completed after payment');
   }
@@ -516,7 +525,7 @@ const markTourCompleteIntoDB = async (
     throw new AppError(httpStatus.BAD_REQUEST, 'Guide must approve this booking before completion');
   }
 
-  const tour = booking.tour as any;
+  const tour = booking.tour as PopulatedTourDates;
   if (!hasTourStarted(tour?.startDate)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Tour can only be completed after the start date');
   }

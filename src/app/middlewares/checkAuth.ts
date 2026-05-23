@@ -51,6 +51,14 @@ const checkAuth =
       req.user = tokenVerification;
       next();
     } catch (error) {
+      if (
+        error instanceof Error &&
+        ['JsonWebTokenError', 'TokenExpiredError'].includes(error.name)
+      ) {
+        next(new AppError(httpStatus.UNAUTHORIZED, error.message));
+        return;
+      }
+
       next(error);
     }
   };
