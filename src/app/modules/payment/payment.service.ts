@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus, { StatusCodes } from 'http-status-codes';
 import AppError from '../../errorHelpers/AppError';
-import { BOOKING_STATUS } from '../booking/booking.interface';
+import { BOOKING_STATUS, GUIDE_APPROVAL_STATUS } from '../booking/booking.interface';
 import { BookingModel } from '../booking/booking.model';
 import { PAYMENT_STATUS } from './payment.interface';
 import { PaymentModel } from './payment.model';
@@ -26,6 +26,17 @@ const getTransactionIdFromPayload = (payload: Record<string, string>) =>
   payload.tran_id || payload.transactionId || payload.transaction_id;
 
 const isValidSslPayment = (status?: string) => status === 'VALID' || status === 'VALIDATED';
+
+const getPaidBookingStatus = (booking: any) => {
+  if (booking.guide && booking.guideApprovalStatus !== GUIDE_APPROVAL_STATUS.APPROVED) {
+    return BOOKING_STATUS.AWAITING_GUIDE_APPROVAL;
+  }
+
+  const startDate = booking.tour?.startDate;
+  return startDate && new Date(startDate).getTime() <= Date.now()
+    ? BOOKING_STATUS.IN_PROGRESS
+    : BOOKING_STATUS.PENDING;
+};
 
 const assertPaymentMatchesGateway = (
   paymentAmount: number,
@@ -53,7 +64,7 @@ const initPaymentIntoDB = async (bookingId: string, userId: string, role: Role) 
   }
   const booking = await BookingModel.findById(payment.booking)
     .populate('user', 'name email phone address')
-    .populate('tour', 'title')
+    .populate('tour', 'title startDate')
     .populate('payment');
 
   if (!booking) {
@@ -144,13 +155,21 @@ const successPaymentIntoDB = async (query: Record<string, string>) => {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Payment Not Found');
     }
 
+    const bookingBeforeStatusUpdate = await BookingModel.findById(updatedPayment.booking)
+      .populate('tour', 'title startDate')
+      .session(session);
+
+    if (!bookingBeforeStatusUpdate) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Tour Not Found');
+    }
+
     const updatedBooking = await BookingModel.findByIdAndUpdate(
       updatedPayment.booking,
-      { status: BOOKING_STATUS.COMPLETE },
+      { status: getPaidBookingStatus(bookingBeforeStatusUpdate) },
       { new: true, runValidators: true, session }
     )
       .populate('user', 'name email phone address')
-      .populate('tour', 'title')
+      .populate('tour', 'title startDate')
       .populate('payment', 'transactionId amount');
 
     if (!updatedBooking) {

@@ -45,8 +45,25 @@ const getAllReviews = catchAsync(async (req: Request, res: Response, next: NextF
   });
 });
 
+const addGuideRating = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const result = await ReviewService.addGuideRatingIntoDB(
+    req.params.reviewId as string,
+    req.body,
+    decodedToken.userId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Guide rating added successfully',
+    data: result,
+  });
+});
+
 export const ReviewController = {
   createReview,
+  addGuideRating,
   getAllReviews,
   getSpecificTourReviews,
 };

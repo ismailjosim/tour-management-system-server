@@ -8,6 +8,10 @@ const reviewSchema = new Schema<IReview>(
       ref: 'User',
       required: true,
     },
+    booking: {
+      type: Schema.Types.ObjectId,
+      ref: 'Booking',
+    },
     tour: {
       type: Schema.Types.ObjectId,
       ref: 'Tour',
@@ -40,5 +44,8 @@ const reviewSchema = new Schema<IReview>(
   },
   { timestamps: true, versionKey: false }
 );
+
+reviewSchema.index({ booking: 1 }, { unique: true, sparse: true });
+reviewSchema.index({ user: 1, tour: 1 });
 
 export const ReviewModel = model<IReview>('Review', reviewSchema);

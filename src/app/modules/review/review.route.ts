@@ -18,6 +18,13 @@ router.post(
   ReviewController.createReview
 );
 
+router.patch(
+  '/:reviewId/guide-rating',
+  checkAuth(Role.GUIDE),
+  validateSchema(ReviewValidation.guideRatingZodSchema),
+  ReviewController.addGuideRating
+);
+
 router.get('/', ReviewController.getAllReviews);
 router.get('/:tourId', ReviewController.getSpecificTourReviews);
 
