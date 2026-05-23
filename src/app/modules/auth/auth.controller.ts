@@ -11,6 +11,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { createUserToken } from '../../utils/userTokens';
 import { environmentVariables } from '../../configs/env';
 import passport from 'passport';
+import { verifyToken } from '../../utils/jwt';
 
 // googleCallbackController
 const googleCallbackController = catchAsync(
@@ -64,8 +65,6 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
       statusCode: httpStatus.CREATED,
       message: 'User login successfully',
       data: {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
         user: userWithoutPassword,
       },
     });
@@ -95,9 +94,7 @@ const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: N
     success: true,
     statusCode: httpStatus.CREATED,
     message: 'New Access Token Generate successfully',
-    data: {
-      accessToken: loginInfo.accessToken,
-    },
+    data: null,
   });
 });
 
@@ -177,7 +174,16 @@ const forgotPassword = catchAsync(async (req: Request, res: Response, next: Next
 
 const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const payload = req.body;
-  const decodedToken = req.user;
+  const token = req.headers.authorization || payload.token;
+
+  if (!token) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Reset token is required');
+  }
+
+  const decodedToken = verifyToken(
+    token.startsWith('Bearer ') ? token.slice(7) : token,
+    environmentVariables.JWT_ACCESS_SECRET
+  );
 
   await AuthServices.resetPasswordIntoDB(payload, decodedToken as JwtPayload);
 
