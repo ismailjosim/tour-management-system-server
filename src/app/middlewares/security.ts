@@ -1,10 +1,10 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import zlib from 'zlib';
 
-type RateLimitStoreValue = {
+interface RateLimitStoreValue {
   count: number;
   resetAt: number;
-};
+}
 
 const stores = new Map<string, Map<string, RateLimitStoreValue>>();
 
@@ -68,12 +68,12 @@ export const lightweightCompression: RequestHandler = (req, res, next) => {
   const originalEnd = res.end.bind(res);
   const chunks: Buffer[] = [];
 
-  res.write = ((chunk: unknown, ...args: unknown[]) => {
+  res.write = ((chunk: unknown) => {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
     return true;
   }) as typeof res.write;
 
-  res.end = ((chunk?: unknown, ...args: unknown[]) => {
+  res.end = ((chunk?: unknown) => {
     if (chunk) {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
     }

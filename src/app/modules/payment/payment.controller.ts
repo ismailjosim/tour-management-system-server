@@ -97,7 +97,7 @@ const cancelPayment = catchAsync(async (req: Request, res: Response, next: NextF
 
 const getInvoiceDownloadURL = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { paymentId } = req.params;
+    const paymentId = req.params.paymentId as string;
     const decodedToken = req.user as JwtPayload;
     const result = await PaymentService.getInvoiceDownloadURLFromDB(
       paymentId,

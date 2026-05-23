@@ -36,7 +36,7 @@ const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction)
   });
 });
 const getSingleUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await UserServices.getSingleUserFromDB(req.params.id);
+  const result = await UserServices.getSingleUserFromDB(req.params.id as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
@@ -46,7 +46,7 @@ const getSingleUser = catchAsync(async (req: Request, res: Response, next: NextF
 });
 
 const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.params.id;
+  const userId = req.params.id as string;
   const decodedToken = req.user as JwtPayload;
   const payload = req.body;
   const result = await UserServices.updateUserIntoDB(userId, payload, decodedToken);
@@ -59,7 +59,7 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
 });
 const updateUserProfilePicture = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.params.id;
+    const userId = req.params.id as string;
     const decodedToken = req.user as JwtPayload;
     const picture = req?.file?.path as string;
     const result = await UserServices.updateUserProfilePictureIntoDB(userId, picture, decodedToken);

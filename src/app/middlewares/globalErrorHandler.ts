@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { environmentVariables } from '../configs/env';
 import AppError from '../errorHelpers/AppError';
-import { ZodError } from 'zod';
+import { z } from 'zod';
 import { TErrorSources } from '../interfaces/error.types';
 import { handleDuplicateError } from '../helpers/handleDuplicateError';
 import { handleCastError } from '../helpers/handleCastError';
@@ -72,7 +72,7 @@ export const globalErrorHandler = async (
   }
 
   // Zod Validation Error
-  else if (err instanceof ZodError) {
+  else if (err instanceof z.ZodError) {
     const simplifiedError = handleZodValidationError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;

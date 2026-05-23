@@ -61,7 +61,7 @@ const updateTour = catchAsync(async (req: Request, res: Response, next: NextFunc
     images: [...existingImages, ...newImagePaths],
   };
 
-  const result = await TourServices.updateTourIntoDB(req.params.id, payload);
+  const result = await TourServices.updateTourIntoDB(req.params.id as string, payload);
 
   sendResponse(res, {
     success: true,
@@ -72,7 +72,7 @@ const updateTour = catchAsync(async (req: Request, res: Response, next: NextFunc
 });
 
 const deleteTour = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await TourServices.deleteTourFromDB(req.params.id);
+  const result = await TourServices.deleteTourFromDB(req.params.id as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -113,7 +113,7 @@ const getSingleTourType = catchAsync(async (req: Request, res: Response, next: N
 });
 
 const updateTourType = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await TourServices.updateTourTypeIntoDB(req.params.id, req.body);
+  const result = await TourServices.updateTourTypeIntoDB(req.params.id as string, req.body);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -123,7 +123,7 @@ const updateTourType = catchAsync(async (req: Request, res: Response, next: Next
 });
 
 const deleteTourType = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await TourServices.deleteTourTypeFromDB(req.params.id);
+  const result = await TourServices.deleteTourTypeFromDB(req.params.id as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

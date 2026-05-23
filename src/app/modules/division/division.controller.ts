@@ -31,7 +31,7 @@ const getAllDivisions = catchAsync(async (req: Request, res: Response, next: Nex
   });
 });
 const getSingleDivision = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await DivisionServices.getSingleDivisionFromDB(req.params.slug);
+  const result = await DivisionServices.getSingleDivisionFromDB(req.params.slug as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -41,7 +41,7 @@ const getSingleDivision = catchAsync(async (req: Request, res: Response, next: N
 });
 
 const updateDivision = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const id = req.params.id;
+  const id = req.params.id as string;
   const payload: IDivision = {
     ...req.body,
     thumbnail: req.file?.path,
@@ -57,7 +57,7 @@ const updateDivision = catchAsync(async (req: Request, res: Response, next: Next
 });
 
 const deleteDivision = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await DivisionServices.deleteDivisionFromDB(req.params.id);
+  const result = await DivisionServices.deleteDivisionFromDB(req.params.id as string);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
