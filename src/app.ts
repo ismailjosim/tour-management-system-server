@@ -13,8 +13,12 @@ import {
   lightweightCompression,
   securityHeaders,
 } from './app/middlewares/security';
+import { isProductionRuntime } from './app/utils/setCookie';
 
 const app: Application = express();
+const isProduction = isProductionRuntime();
+
+app.set('trust proxy', 1);
 
 // parsers
 app.use(express.json());
@@ -37,14 +41,13 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: environmentVariables.NODE_ENV === 'production',
-      sameSite: environmentVariables.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
     },
   })
 );
 app.use(passport.initialize());
 app.use(passport.session());
-app.set('trust proxy', 1);
 app.use(
   cors({
     origin: environmentVariables.FRONTEND_URL,

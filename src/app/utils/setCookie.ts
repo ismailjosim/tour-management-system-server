@@ -7,14 +7,22 @@ export interface AuthToken {
   refreshToken?: string;
 }
 
-export const setAuthCookie = (res: Response, token: AuthToken) => {
-  const isProduction = environmentVariables.NODE_ENV === 'production';
-  const cookieOptions = {
+export const isProductionRuntime = () =>
+  environmentVariables.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
+export const authCookieOptions = () => {
+  const isProduction = isProductionRuntime();
+
+  return {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? ('none' as const) : ('lax' as const),
     path: '/',
   };
+};
+
+export const setAuthCookie = (res: Response, token: AuthToken) => {
+  const cookieOptions = authCookieOptions();
 
   if (token.accessToken) {
     res.cookie('accessToken', token.accessToken, {
