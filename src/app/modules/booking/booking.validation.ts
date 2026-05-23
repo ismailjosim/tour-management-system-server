@@ -10,7 +10,20 @@ const updateBookingStatusSchema = z.object({
   status: z.nativeEnum(BOOKING_STATUS),
 });
 
+// NEW: Approve or reject booking schema
+const approveBookingSchema = z.object({
+  approved: z.boolean(),
+  rejectionReason: z.string().optional(),
+});
+
+// NEW: Mark tour complete schema
+const completeBookingSchema = z.object({
+  completedBy: z.enum(['user', 'guide']),
+});
+
 export const BookingValidation = {
   createBookingSchema,
   updateBookingStatusSchema,
+  approveBookingSchema,
+  completeBookingSchema,
 };

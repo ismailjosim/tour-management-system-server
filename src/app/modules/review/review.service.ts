@@ -9,6 +9,7 @@ import { PAYMENT_STATUS } from '../payment/payment.interface';
 import { ReviewModel } from './review.model';
 import { QueryBuilder } from '../../utils/QueryBuilder';
 import { GuideModel } from '../guide/guide.model';
+import { Types, isValidObjectId } from 'mongoose';
 
 const createReviewIntoDB = async (payload: IReview, userId: string) => {
   // 1️⃣ check user is exist
@@ -20,18 +21,37 @@ const createReviewIntoDB = async (payload: IReview, userId: string) => {
 
   payload.user = user._id;
 
-  //2️⃣ check booking and payment status
-  const booking = await BookingModel.findOne({
+  const requestedBookingId = (payload as any).bookingId || payload.booking;
+  const bookingQuery: Record<string, unknown> = {
     user: userId,
-    tour: payload.tour,
     status: BOOKING_STATUS.COMPLETE,
-  })
-    .populate('payment', 'status')
-    .exec();
+  };
+
+  if (requestedBookingId) {
+    if (!isValidObjectId(requestedBookingId)) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Valid booking id is required');
+    }
+    bookingQuery._id = requestedBookingId;
+  } else {
+    bookingQuery.tour = payload.tour;
+  }
+
+  //2️⃣ check booking and payment status
+  const booking = await BookingModel.findOne(bookingQuery).populate('payment', 'status').exec();
 
   if (!booking) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'You must book this tour before posting a review');
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Review is allowed only after completing this booking'
+    );
   }
+
+  if (!booking.userCompleted || !booking.guideCompleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Both user and guide must complete the tour first');
+  }
+
+  payload.booking = booking._id as Types.ObjectId;
+  payload.tour = booking.tour;
   //3️⃣ check payment status is successful
   const paymentStatus = (booking.payment as any)?.status;
   if (paymentStatus !== PAYMENT_STATUS.PAID) {
@@ -51,35 +71,24 @@ const createReviewIntoDB = async (payload: IReview, userId: string) => {
     bookedGuideProfile?.user ? String(bookedGuideProfile.user) : '',
   ].filter(Boolean);
   const requestedGuideId = payload.guide ? String(payload.guide) : '';
-  const wantsGuideReview = Boolean(payload.guideRating || payload.guideComments?.trim());
 
   if (requestedGuideId && !assignedGuideIds.includes(requestedGuideId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'You can only review your assigned guide');
   }
 
-  if (
-    wantsGuideReview &&
-    booking.guide &&
-    (!payload.guideRating || !payload.guideComments?.trim())
-  ) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Please provide guide rating and comments');
-  }
-
-  if (wantsGuideReview && booking.guide) {
+  if (booking.guide) {
     payload.guide = bookedGuideProfile?.user ?? booking.guide;
   } else {
     delete payload.guide;
-    delete payload.guideRating;
-    delete payload.guideComments;
   }
 
-  // 4️⃣ Check if review already exists for this user-tour pair
-  const existingReview = await ReviewModel.findOne({
-    user: userId,
-    tour: payload.tour,
-  });
+  delete payload.guideRating;
+  delete payload.guideComments;
+
+  // 4️⃣ Check if review already exists for this booking
+  const existingReview = await ReviewModel.findOne({ booking: booking._id });
   if (existingReview) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'You already submitted a review for this tour');
+    throw new AppError(httpStatus.BAD_REQUEST, 'You already submitted a review for this booking');
   }
 
   // 5️⃣ Create Review
@@ -87,9 +96,59 @@ const createReviewIntoDB = async (payload: IReview, userId: string) => {
   return review;
 };
 
+const addGuideRatingIntoDB = async (
+  reviewId: string,
+  payload: { guideRating: number; guideComments: string },
+  guideUserId: string
+) => {
+  if (!isValidObjectId(reviewId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Valid review id is required');
+  }
+
+  const review = await ReviewModel.findById(reviewId);
+  if (!review) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Review not found');
+  }
+
+  if (!review.booking) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This review is not linked to a booking');
+  }
+
+  const guideProfile = await GuideModel.findOne({ user: guideUserId }).select('_id user').lean();
+  const guideIds = [guideUserId, guideProfile?._id ? String(guideProfile._id) : ''].filter(Boolean);
+
+  const booking = await BookingModel.findOne({
+    _id: review.booking,
+    guide: { $in: guideIds },
+    status: BOOKING_STATUS.COMPLETE,
+  });
+
+  if (!booking) {
+    throw new AppError(httpStatus.FORBIDDEN, 'You are not the guide for this completed booking');
+  }
+
+  if (review.guideRating || review.guideComments) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'You already rated this traveler');
+  }
+
+  return ReviewModel.findByIdAndUpdate(
+    reviewId,
+    {
+      guideRating: payload.guideRating,
+      guideComments: payload.guideComments,
+    },
+    { new: true, runValidators: true }
+  )
+    .populate('user', 'name picture')
+    .populate('guide', 'name picture')
+    .populate('tour', 'title slug location');
+};
+
 const getSpecificTourReviewsFromDB = async (tourId: string, query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(
-    ReviewModel.find({ tour: tourId }).populate('user', 'name picture -_id'),
+    ReviewModel.find({ tour: tourId })
+      .populate('user', 'name picture -_id')
+      .populate('guide', 'name picture -_id'),
     query
   );
 
@@ -124,6 +183,7 @@ const getAllReviewsFromDB = async (query: Record<string, string>) => {
 
 export const ReviewService = {
   createReviewIntoDB,
+  addGuideRatingIntoDB,
   getAllReviewsFromDB,
   getSpecificTourReviewsFromDB,
 };

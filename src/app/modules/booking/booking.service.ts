@@ -14,7 +14,14 @@ import { TourModel } from '../tour/tour.model';
 import { Role } from '../user/user.interface';
 import { UserModel } from '../user/user.model';
 
-import { BOOKING_STATUS, IBooking, IUpdateBookingStatusPayload } from './booking.interface';
+import {
+  BOOKING_STATUS,
+  IBooking,
+  IUpdateBookingStatusPayload,
+  GUIDE_APPROVAL_STATUS,
+  IApproveBookingPayload,
+  ICompleteBookingPayload,
+} from './booking.interface';
 import { BookingModel } from './booking.model';
 
 type BookingUserRef =
@@ -83,6 +90,15 @@ const populateBookingDetails = <T = any>(query: any): Query<T, unknown> => {
     .populate('guide', 'name email phone picture role');
 };
 
+const getGuideFilterIds = async (guideUserId: string): Promise<string[]> => {
+  const { GuideModel } = await import('../guide/guide.model');
+  const guideProfile = await GuideModel.findOne({ user: guideUserId }).select('_id').lean();
+  return [guideUserId, guideProfile?._id ? String(guideProfile._id) : ''].filter(Boolean);
+};
+
+const hasTourStarted = (startDate?: Date | string): boolean =>
+  Boolean(startDate && new Date(startDate).getTime() <= Date.now());
+
 const validateCreateBookingPayload = (payload: Partial<IBooking>): void => {
   if (!payload.tour || !isValidObjectId(payload.tour)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Valid tour id is required');
@@ -114,6 +130,14 @@ const createBookingIntoDB = async (
 
     if (!user) {
       throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+    }
+
+    // FIX: Prevent guides from booking tours
+    if (user.role === Role.GUIDE) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Guides cannot book tours. Guides can only be selected by users to lead tours.'
+      );
     }
 
     if (!user.phone || !user.address) {
@@ -204,7 +228,12 @@ const createBookingIntoDB = async (
           ...payload,
           user: userId,
           guide: assignedGuideUserId,
-          status: BOOKING_STATUS.PENDING,
+          status: assignedGuideUserId
+            ? BOOKING_STATUS.AWAITING_GUIDE_APPROVAL
+            : BOOKING_STATUS.PENDING,
+          guideApprovalStatus: assignedGuideUserId
+            ? GUIDE_APPROVAL_STATUS.PENDING
+            : GUIDE_APPROVAL_STATUS.APPROVED,
         },
       ],
       { session }
@@ -356,10 +385,188 @@ const updateBookingStatusIntoDB = async (
   return updatedBooking;
 };
 
+// NEW: Get pending guide approvals
+const getGuideApprovalsFromDB = async (
+  guideId: string,
+  query: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+): Promise<{ data: IBooking[]; meta: QueryMeta }> => {
+  if (!isValidObjectId(guideId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Valid guide id is required');
+  }
+
+  const guideIds = await getGuideFilterIds(guideId);
+
+  const queryBuilder = new QueryBuilder(
+    BookingModel.find({
+      guide: { $in: guideIds },
+      guideApprovalStatus: GUIDE_APPROVAL_STATUS.PENDING,
+    })
+      .populate('user', 'name email phone picture')
+      .populate('tour', 'title slug images location startDate endDate costFrom')
+      .populate('payment', 'status amount'),
+    query
+  );
+
+  const bookings = queryBuilder.filter().sort().fields().paginate();
+  const [data, meta] = await Promise.all([bookings.build(), queryBuilder.getMeta()]);
+
+  return {
+    data,
+    meta: meta as QueryMeta,
+  };
+};
+
+// NEW: Approve or reject booking by guide
+const approveOrRejectBookingIntoDB = async (
+  bookingId: string,
+  payload: IApproveBookingPayload,
+  decodedUser: AuthJwtPayload
+): Promise<IBooking | null> => {
+  if (!isValidObjectId(bookingId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Valid booking id is required');
+  }
+
+  const booking = await BookingModel.findById(bookingId)
+    .populate('payment', 'status')
+    .populate('tour', 'startDate');
+
+  if (!booking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+  }
+
+  // Verify that the guide owns this booking
+  const guideIds = await getGuideFilterIds(decodedUser.userId);
+
+  if (!booking.guide || !guideIds.includes(booking.guide.toString())) {
+    throw new AppError(httpStatus.FORBIDDEN, 'You are not assigned to this booking');
+  }
+
+  if (booking.guideApprovalStatus !== GUIDE_APPROVAL_STATUS.PENDING) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Booking has already been ${booking.guideApprovalStatus?.toLowerCase()}`
+    );
+  }
+
+  const updateData: Partial<IBooking> = {
+    guideApprovalStatus: payload.approved
+      ? GUIDE_APPROVAL_STATUS.APPROVED
+      : GUIDE_APPROVAL_STATUS.REJECTED,
+  };
+
+  if (payload.approved) {
+    const paymentStatus = (booking.payment as any)?.status;
+    const tourStartDate = (booking.tour as any)?.startDate;
+    updateData.status =
+      paymentStatus === PAYMENT_STATUS.PAID && hasTourStarted(tourStartDate)
+        ? BOOKING_STATUS.IN_PROGRESS
+        : BOOKING_STATUS.AWAITING_GUIDE_APPROVAL;
+  } else {
+    updateData.status = BOOKING_STATUS.REJECTED;
+    updateData.rejectionReason = payload.rejectionReason || 'Guide rejected the booking';
+  }
+
+  const updatedBooking = await populateBookingDetails<IBooking>(
+    BookingModel.findByIdAndUpdate(bookingId, updateData, { new: true, runValidators: true })
+  );
+
+  if (!updatedBooking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+  }
+
+  return updatedBooking;
+};
+
+// NEW: Mark tour as complete by user or guide
+const markTourCompleteIntoDB = async (
+  bookingId: string,
+  payload: ICompleteBookingPayload,
+  decodedUser: AuthJwtPayload
+): Promise<IBooking | null> => {
+  if (!isValidObjectId(bookingId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Valid booking id is required');
+  }
+
+  const booking = await BookingModel.findById(bookingId)
+    .populate('payment', 'status')
+    .populate('tour', 'startDate endDate');
+
+  if (!booking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+  }
+
+  // Verify access: only user or assigned guide can mark complete
+  if (payload.completedBy === 'user') {
+    if (booking.user.toString() !== decodedUser.userId) {
+      throw new AppError(httpStatus.FORBIDDEN, 'You are not the booking user');
+    }
+  } else if (payload.completedBy === 'guide') {
+    const guideIds = await getGuideFilterIds(decodedUser.userId);
+    if (!booking.guide || !guideIds.includes(booking.guide.toString())) {
+      throw new AppError(httpStatus.FORBIDDEN, 'You are not assigned to this booking');
+    }
+  }
+
+  const paymentStatus = (booking.payment as any)?.status;
+  if (paymentStatus !== PAYMENT_STATUS.PAID) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Tour can only be completed after payment');
+  }
+
+  if (booking.guide && booking.guideApprovalStatus !== GUIDE_APPROVAL_STATUS.APPROVED) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Guide must approve this booking before completion');
+  }
+
+  const tour = booking.tour as any;
+  if (!hasTourStarted(tour?.startDate)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Tour can only be completed after the start date');
+  }
+
+  if (
+    booking.status === BOOKING_STATUS.REJECTED ||
+    booking.status === BOOKING_STATUS.CANCEL ||
+    booking.status === BOOKING_STATUS.FAILED
+  ) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'This booking cannot be completed');
+  }
+
+  const updateData: Partial<IBooking> = {};
+
+  if (payload.completedBy === 'user') {
+    updateData.userCompleted = true;
+  } else {
+    updateData.guideCompleted = true;
+  }
+
+  // If both are complete, change status to COMPLETE
+  const isUserCompleting = payload.completedBy === 'user';
+  const guideAlreadyCompleted = booking.guideCompleted;
+  const userAlreadyCompleted = booking.userCompleted;
+
+  if ((isUserCompleting && guideAlreadyCompleted) || (!isUserCompleting && userAlreadyCompleted)) {
+    updateData.status = BOOKING_STATUS.COMPLETE;
+    updateData.completionDate = new Date();
+  } else {
+    updateData.status = BOOKING_STATUS.IN_PROGRESS;
+  }
+
+  const updatedBooking = await populateBookingDetails<IBooking>(
+    BookingModel.findByIdAndUpdate(bookingId, updateData, { new: true, runValidators: true })
+  );
+
+  if (!updatedBooking) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+  }
+
+  return updatedBooking;
+};
+
 export const BookingService = {
   createBookingIntoDB,
   getAllBookingFromDB,
   getUserBookingFromDB,
   getSingleBookingFromDB,
   updateBookingStatusIntoDB,
+  getGuideApprovalsFromDB,
+  approveOrRejectBookingIntoDB,
+  markTourCompleteIntoDB,
 };

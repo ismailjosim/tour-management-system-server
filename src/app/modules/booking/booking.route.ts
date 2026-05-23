@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post(
   '/',
-  checkAuth(...Object.values(Role)),
+  checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN), // Prevent GUIDE role from booking
   validateSchema(BookingValidation.createBookingSchema),
   BookingController.createBooking
 );
@@ -18,7 +18,26 @@ router.get('/', checkAuth(Role.ADMIN, Role.SUPER_ADMIN), BookingController.getAl
 
 router.get('/my-bookings', checkAuth(...Object.values(Role)), BookingController.getUserBookings);
 
+// NEW: Get pending approvals for guide
+router.get('/guide/pending-approvals', checkAuth(Role.GUIDE), BookingController.getGuideApprovals);
+
 router.get('/:bookingId', checkAuth(...Object.values(Role)), BookingController.getSingleBooking);
+
+// NEW: Approve or reject booking by guide
+router.patch(
+  '/:bookingId/guide-approval',
+  checkAuth(Role.GUIDE),
+  validateSchema(BookingValidation.approveBookingSchema),
+  BookingController.approveOrRejectBooking
+);
+
+// NEW: Mark tour as complete
+router.patch(
+  '/:bookingId/complete',
+  checkAuth(Role.USER, Role.GUIDE),
+  validateSchema(BookingValidation.completeBookingSchema),
+  BookingController.markTourComplete
+);
 
 router.patch(
   '/:bookingId/status',
