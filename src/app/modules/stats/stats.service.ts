@@ -3,9 +3,12 @@ import { BookingModel } from '../booking/booking.model';
 import { PAYMENT_STATUS } from '../payment/payment.interface';
 import { PaymentModel } from '../payment/payment.model';
 import { TourModel } from '../tour/tour.model';
-import { IsActive } from '../user/user.interface';
+import { IsActive, Role } from '../user/user.interface';
 import { UserModel } from '../user/user.model';
 import { GuideService } from '../guide/guide.service';
+import { GuideModel } from '../guide/guide.model';
+import { IGuideStatus } from '../guide/guide.interface';
+import { DivisionModel } from '../division/division.model';
 
 // common functions
 const now = new Date();
@@ -355,10 +358,38 @@ const getPaymentStatsFromDB = async () => {
 
 const getGuideStatsFromDB = async (userId: string) => GuideService.getMyStatsFromDB(userId);
 
+const getHomepageStatsFromDB = async () => {
+  const totalToursPromise = TourModel.countDocuments();
+  const totalGuidesPromise = GuideModel.countDocuments({ status: IGuideStatus.APPROVED });
+  const totalDestinationsPromise = DivisionModel.countDocuments();
+  const uniqueTravelersPromise = BookingModel.distinct('user').then((users) => users.length);
+  const totalTravelerUsersPromise = UserModel.countDocuments({
+    role: Role.USER,
+    isDeleted: { $ne: true },
+  });
+
+  const [totalTours, totalGuides, totalDestinations, uniqueTravelers, totalTravelerUsers] =
+    await Promise.all([
+      totalToursPromise,
+      totalGuidesPromise,
+      totalDestinationsPromise,
+      uniqueTravelersPromise,
+      totalTravelerUsersPromise,
+    ]);
+
+  return {
+    totalTours,
+    totalGuides,
+    totalDestinations,
+    happyTravelers: Math.max(uniqueTravelers, totalTravelerUsers),
+  };
+};
+
 export const StatsService = {
   getUserStatsFromDB,
   getTourStatsFromDB,
   getBookingStatsFromDB,
   getPaymentStatsFromDB,
   getGuideStatsFromDB,
+  getHomepageStatsFromDB,
 };

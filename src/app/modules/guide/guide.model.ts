@@ -4,8 +4,12 @@ import { IGuide, IGuideStatus } from './guide.interface';
 const guideSchema = new Schema<IGuide>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    division: { type: Schema.Types.ObjectId, ref: 'Division', required: true },
+    country: { type: String, trim: true },
+    locationDivision: { type: String, trim: true },
+    division: { type: Schema.Types.ObjectId, ref: 'Division' },
     nidPhoto: { type: String, required: true },
+    nidFrontPhoto: { type: String },
+    nidBackPhoto: { type: String },
     photo: { type: String },
     bio: { type: String },
     languages: { type: [String], default: [] },

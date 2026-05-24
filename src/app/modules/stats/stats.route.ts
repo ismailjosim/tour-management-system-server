@@ -5,6 +5,7 @@ import { Role } from '../user/user.interface';
 
 const router = express.Router();
 
+router.get('/homepage', StatsController.getHomepageStats);
 router.get('/user', checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getUserStats);
 router.get('/tour', checkAuth(Role.ADMIN, Role.SUPER_ADMIN), StatsController.getTourStats);
 
