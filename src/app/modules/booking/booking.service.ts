@@ -81,11 +81,7 @@ const inferTourLocation = (tour: {
   departureLocation?: string | null;
   arrivalLocation?: string | null;
 }) => {
-  const searchableLocation = [
-    tour.location,
-    tour.departureLocation,
-    tour.arrivalLocation,
-  ]
+  const searchableLocation = [tour.location, tour.departureLocation, tour.arrivalLocation]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();

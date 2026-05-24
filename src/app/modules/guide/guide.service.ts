@@ -672,7 +672,7 @@ const getAvailableGuidesForTourFromDB = async (tourId: string) => {
     }
 
     // Check if any unavailable date overlaps with tour dates
-    return !guide.unavailableDates.some((unavailableDate) => {
+    return !guide.unavailableDates.some((unavailableDate: Date | string) => {
       const date = new Date(unavailableDate);
       return date >= tourStartDate && date <= tourEndDate;
     });

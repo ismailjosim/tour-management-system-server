@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import passport from 'passport';
+import passport, { Strategy as PassportStrategy } from 'passport';
 import { Strategy as GoogleStrategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { environmentVariables } from './env';
 import { UserModel } from '../modules/user/user.model';
@@ -60,7 +60,7 @@ passport.use(
         done(error);
       }
     }
-  )
+  ) as unknown as PassportStrategy
 );
 
 // login with google oAuth
@@ -116,7 +116,7 @@ passport.use(
         return done(error);
       }
     }
-  )
+  ) as unknown as PassportStrategy
 );
 
 passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {

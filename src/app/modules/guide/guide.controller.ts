@@ -33,7 +33,7 @@ const applyGuide = catchAsync(async (req: Request, res: Response, next: NextFunc
 
   const payload: IGuide = {
     ...req.body,
-    user: new Types.ObjectId(decodedToken.userId),
+    user: decodedToken.userId as unknown as Types.ObjectId,
     nidPhoto: nidFrontPhoto,
     nidFrontPhoto,
     nidBackPhoto,
