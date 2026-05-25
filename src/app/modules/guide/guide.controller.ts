@@ -19,10 +19,25 @@ import { BOOKING_STATUS } from '../booking/booking.interface';
 // Apply as a guide
 const applyGuide = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const decodedToken = req.user as JwtPayload;
+  const files = req.files as
+    | {
+        nidFrontPhoto?: Express.Multer.File[];
+        nidBackPhoto?: Express.Multer.File[];
+        photo?: Express.Multer.File[];
+        file?: Express.Multer.File[];
+      }
+    | undefined;
+  const nidFrontPhoto = files?.nidFrontPhoto?.[0]?.path || files?.file?.[0]?.path;
+  const nidBackPhoto = files?.nidBackPhoto?.[0]?.path;
+  const photo = files?.photo?.[0]?.path;
+
   const payload: IGuide = {
     ...req.body,
-    user: new Types.ObjectId(decodedToken.userId),
-    nidPhoto: req.file?.path,
+    user: decodedToken.userId as unknown as Types.ObjectId,
+    nidPhoto: nidFrontPhoto,
+    nidFrontPhoto,
+    nidBackPhoto,
+    photo,
   };
   const result = await GuideService.applyGuideIntoDB(payload);
   sendResponse(res, {
@@ -48,7 +63,31 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 // Update my profile
 const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
   const decodedToken = req.user as JwtPayload;
-  const result = await GuideService.updateMyProfileInDB(decodedToken.userId, req.body);
+  const updateData: Partial<IGuide> = req.body;
+
+  // Handle photo upload
+  if (req.file) {
+    updateData.photo = req.file.path;
+  }
+
+  // Parse JSON fields if they come as strings
+  if (typeof updateData.languages === 'string') {
+    try {
+      updateData.languages = JSON.parse(updateData.languages);
+    } catch (e) {
+      updateData.languages = [];
+    }
+  }
+
+  if (typeof updateData.specialties === 'string') {
+    try {
+      updateData.specialties = JSON.parse(updateData.specialties);
+    } catch (e) {
+      updateData.specialties = [];
+    }
+  }
+
+  const result = await GuideService.updateMyProfileInDB(decodedToken.userId, updateData);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

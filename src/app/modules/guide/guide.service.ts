@@ -14,8 +14,56 @@ import { BookingModel } from '../booking/booking.model';
 import { BOOKING_STATUS } from '../booking/booking.interface';
 import { PAYMENT_STATUS } from '../payment/payment.interface';
 import { ReviewModel } from '../review/review.model';
+import { DIVISION_ALIASES, getAllCountries, STATES } from '../../constants/location.constant';
 
 const GUIDE_COMMISSION_RATE = 0.2;
+
+const normalizeLocationValue = (value?: string | null) => value?.trim().toLowerCase() || '';
+
+const resolveLocalDivision = (value?: string | null) => {
+  const normalizedValue = normalizeLocationValue(value);
+  if (!normalizedValue) return '';
+
+  const directMatch = STATES.find(
+    (division) => normalizeLocationValue(division.name) === normalizedValue
+  );
+
+  if (directMatch) return directMatch.name;
+
+  return DIVISION_ALIASES[normalizedValue] || value?.trim() || '';
+};
+
+const inferTourLocation = (tour: {
+  location?: string | null;
+  departureLocation?: string | null;
+  arrivalLocation?: string | null;
+}) => {
+  const searchableLocation = [tour.location, tour.departureLocation, tour.arrivalLocation]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  for (const country of getAllCountries()) {
+    const states = STATES.filter((state) => state.country_id === country.id);
+    const matchedDivision = states.find((division) =>
+      searchableLocation.includes(normalizeLocationValue(division.name))
+    );
+
+    if (matchedDivision) {
+      return { country: country.name, locationDivision: matchedDivision.name };
+    }
+
+    const matchedAlias = Object.entries(DIVISION_ALIASES).find(([alias]) =>
+      searchableLocation.includes(alias)
+    );
+
+    if (matchedAlias) {
+      return { country: country.name, locationDivision: matchedAlias[1] };
+    }
+  }
+
+  return { country: '', locationDivision: '' };
+};
 
 const bookingDetailsPopulate = (query: any) =>
   query
@@ -63,26 +111,51 @@ const getAssignedGuideBookingsLean = async (userId: string) => {
 // Apply to become a guide
 const applyGuideIntoDB = async (payload: {
   user: Types.ObjectId;
-  division: Types.ObjectId;
+  country?: string;
+  locationDivision?: string;
+  division?: Types.ObjectId;
   nidPhoto: string;
+  nidFrontPhoto?: string;
+  nidBackPhoto?: string;
+  photo?: string;
 }): Promise<IGuide> => {
+  const uploadedImages = [payload.nidPhoto, payload.nidBackPhoto, payload.photo].filter(Boolean);
+  const cleanupUploadedImages = async () => {
+    await Promise.all(uploadedImages.map((image) => deleteImageFromCloudinary(image as string)));
+  };
+
+  if (!payload.nidPhoto || !payload.nidBackPhoto || !payload.photo) {
+    await cleanupUploadedImages();
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'NID front, NID back, and guide profile photo are required'
+    );
+  }
+
+  if (!payload.country || !payload.locationDivision) {
+    await cleanupUploadedImages();
+    throw new AppError(httpStatus.BAD_REQUEST, 'Country and local division are required');
+  }
+
+  payload.locationDivision = resolveLocalDivision(payload.locationDivision);
+
   // *1: check user exists
   const user = await UserModel.findById(payload.user);
   if (!user) {
-    await deleteImageFromCloudinary(payload.nidPhoto);
+    await cleanupUploadedImages();
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
 
   // *2: check if user role is already GUIDE
   if (user.role === 'GUIDE') {
-    await deleteImageFromCloudinary(payload.nidPhoto);
+    await cleanupUploadedImages();
     throw new AppError(httpStatus.BAD_REQUEST, 'You are already a guide');
   }
 
   // *3: check if user already applied
   const isGuideExist = await GuideModel.findOne({ user: payload.user });
   if (isGuideExist) {
-    await deleteImageFromCloudinary(payload.nidPhoto);
+    await cleanupUploadedImages();
     throw new AppError(httpStatus.BAD_REQUEST, 'You already applied as a guide');
   }
 
@@ -196,6 +269,18 @@ const updateMyProfileInDB = async (
   userId: string,
   updateData: Partial<IGuide>
 ): Promise<IGuide | null> => {
+  // If a new photo is being uploaded, delete the old one
+  if (updateData.photo) {
+    const existingGuide = await GuideModel.findOne({ user: userId });
+    if (existingGuide?.photo) {
+      try {
+        await deleteImageFromCloudinary(existingGuide.photo);
+      } catch {
+        // Continue with update even if deletion fails
+      }
+    }
+  }
+
   return GuideModel.findOneAndUpdate({ user: userId }, updateData, {
     new: true,
     runValidators: true,
@@ -527,7 +612,7 @@ const deleteGuideFromDB = async (guideId: string): Promise<IGuide | null> => {
 const getAvailableGuidesForTourFromDB = async (tourId: string) => {
   const { TourModel } = await import('../tour/tour.model');
 
-  // 1️⃣ Get tour details to find division
+  // 1️⃣ Get tour details to find real location
   const tour = await TourModel.findById(tourId);
   if (!tour) {
     throw new AppError(httpStatus.NOT_FOUND, 'Tour not found');
@@ -537,9 +622,16 @@ const getAvailableGuidesForTourFromDB = async (tourId: string) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'Tour start date and end date are required');
   }
 
-  // 2️⃣ Find all approved guides in the tour's division
+  const tourLocation = inferTourLocation(tour);
+
+  if (!tourLocation.locationDivision) {
+    return [];
+  }
+
+  // 2️⃣ Find all approved guides in the tour's real local division
   const guides = await GuideModel.find({
-    division: tour.division,
+    country: tourLocation.country,
+    locationDivision: tourLocation.locationDivision,
     status: IGuideStatus.APPROVED,
   })
     .populate('user', 'name email phone picture address role')
@@ -580,7 +672,7 @@ const getAvailableGuidesForTourFromDB = async (tourId: string) => {
     }
 
     // Check if any unavailable date overlaps with tour dates
-    return !guide.unavailableDates.some((unavailableDate) => {
+    return !guide.unavailableDates.some((unavailableDate: Date | string) => {
       const date = new Date(unavailableDate);
       return date >= tourStartDate && date <= tourEndDate;
     });

@@ -13,6 +13,7 @@ import { ISSlCommerz } from '../sslCommerz/sslCommerz.interface';
 import { TourModel } from '../tour/tour.model';
 import { Role } from '../user/user.interface';
 import { UserModel } from '../user/user.model';
+import { DIVISION_ALIASES, getAllCountries, STATES } from '../../constants/location.constant';
 
 import {
   BOOKING_STATUS,
@@ -71,6 +72,40 @@ const getBookingUserId = (bookingUser: BookingUserRef): string => {
   }
 
   return '';
+};
+
+const normalizeLocationValue = (value?: string | null) => value?.trim().toLowerCase() || '';
+
+const inferTourLocation = (tour: {
+  location?: string | null;
+  departureLocation?: string | null;
+  arrivalLocation?: string | null;
+}) => {
+  const searchableLocation = [tour.location, tour.departureLocation, tour.arrivalLocation]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  for (const country of getAllCountries()) {
+    const states = STATES.filter((state) => state.country_id === country.id);
+    const matchedDivision = states.find((division) =>
+      searchableLocation.includes(normalizeLocationValue(division.name))
+    );
+
+    if (matchedDivision) {
+      return { country: country.name, locationDivision: matchedDivision.name };
+    }
+
+    const matchedAlias = Object.entries(DIVISION_ALIASES).find(([alias]) =>
+      searchableLocation.includes(alias)
+    );
+
+    if (matchedAlias) {
+      return { country: country.name, locationDivision: matchedAlias[1] };
+    }
+  }
+
+  return { country: '', locationDivision: '' };
 };
 
 const assertBookingAccess = (bookingUser: BookingUserRef, decodedUser: AuthJwtPayload): void => {
@@ -154,7 +189,7 @@ const createBookingIntoDB = async (
     }
 
     const tour = await TourModel.findById(payload.tour)
-      .select('costFrom startDate endDate division')
+      .select('costFrom startDate endDate location departureLocation arrivalLocation')
       .session(session);
 
     if (!tour) {
@@ -185,10 +220,17 @@ const createBookingIntoDB = async (
         throw new AppError(httpStatus.BAD_REQUEST, 'Selected guide is not approved');
       }
 
-      if (tour.division && guide.division.toString() !== tour.division.toString()) {
+      const tourLocation = inferTourLocation(tour);
+
+      if (
+        tourLocation.locationDivision &&
+        (normalizeLocationValue(guide.country) !== normalizeLocationValue(tourLocation.country) ||
+          normalizeLocationValue(guide.locationDivision) !==
+            normalizeLocationValue(tourLocation.locationDivision))
+      ) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
-          'Selected guide is not available for this tour division'
+          'Selected guide is not available for this tour location'
         );
       }
 

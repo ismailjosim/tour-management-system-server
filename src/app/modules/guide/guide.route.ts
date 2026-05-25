@@ -17,7 +17,12 @@ const router = express.Router();
 router.post(
   '/apply',
   checkAuth(...Object.values(Role)),
-  multerUpload.single('file'),
+  multerUpload.fields([
+    { name: 'nidFrontPhoto', maxCount: 1 },
+    { name: 'nidBackPhoto', maxCount: 1 },
+    { name: 'photo', maxCount: 1 },
+    { name: 'file', maxCount: 1 },
+  ]),
   validateSchema(GuideValidation.applyGuideSchema),
   GuideController.applyGuide
 );
@@ -27,8 +32,9 @@ router.get('/public', GuideController.getPublicGuides);
 router.get('/me/profile', checkAuth(...Object.values(Role)), GuideController.getMyProfile);
 
 router.patch(
-  '/me/profile', // validateRequest(GuideValidation.updateMyProfileSchema),
+  '/me/profile',
   checkAuth(Role.GUIDE),
+  multerUpload.single('photo'),
   GuideController.updateMyProfile
 );
 

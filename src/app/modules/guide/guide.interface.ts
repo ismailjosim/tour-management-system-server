@@ -9,8 +9,12 @@ export enum IGuideStatus {
 export interface IGuide {
   _id: Types.ObjectId;
   user: Types.ObjectId;
-  division: Types.ObjectId;
+  country?: string;
+  locationDivision?: string;
+  division?: Types.ObjectId;
   nidPhoto: string;
+  nidFrontPhoto?: string;
+  nidBackPhoto?: string;
   status?: IGuideStatus;
   photo?: string;
   bio?: string;

@@ -17,6 +17,13 @@ import { isProductionRuntime } from './app/utils/setCookie';
 
 const app: Application = express();
 const isProduction = isProductionRuntime();
+const allowedOrigins = new Set([
+  environmentVariables.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+]);
 
 app.set('trust proxy', 1);
 
@@ -50,7 +57,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(
   cors({
-    origin: environmentVariables.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
     credentials: true,
   })
 );

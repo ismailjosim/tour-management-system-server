@@ -60,10 +60,22 @@ const getGuideStats = catchAsync(async (req: Request, res: Response, next: NextF
   });
 });
 
+const getHomepageStats = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const result = await StatsService.getHomepageStatsFromDB();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Homepage Stats Retrieved Successfully',
+    data: result,
+  });
+});
+
 export const StatsController = {
   getBookingStats,
   getPaymentStats,
   getUserStats,
   getTourStats,
   getGuideStats,
+  getHomepageStats,
 };
